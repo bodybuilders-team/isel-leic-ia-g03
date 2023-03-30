@@ -15,6 +15,11 @@
 % ?- play.
 % ====================================================
 
+% TODOS:
+% - Minimax (PvC)
+% - Clean up code
+% - Change the o and x to black and white
+
 % Start the game
 play :-
     writeln('Welcome to the Prolog Hex Game!'),
@@ -22,7 +27,7 @@ play :-
     get_board_size(BoardSize),
     create_board(BoardSize, Board),
     display_board(Board),
-    play_game(GameMode, Board).
+    play_game(GameMode, Board). % TODO: dá me ideia q a convenção é overloading, por isso ter play/1 e play/2
 
 % Gets the game mode
 get_game_mode(GameMode):-
@@ -32,7 +37,7 @@ get_game_mode(GameMode):-
 
 % Gets the board size from the user
 get_board_size(BoardSize):-
-    write('Please enter the board size[1-11]: '),
+    write('Please enter the board size[2-11]: '),
     read(BoardSize).
 
 % ==============================================
@@ -41,7 +46,7 @@ get_board_size(BoardSize):-
 
 % Creates a board with the given size
 create_board(BoardSize, Board):-
-    between(1, 11, BoardSize),
+    between(2, 11, BoardSize),
     create_board_r(BoardSize, BoardSize, Board).
 
 % Creates a board recursively
@@ -133,12 +138,95 @@ play_game_pvp_r(Board, CurrentPlayer):-
     validate_move(Move, Board)
         ->  make_move(Move, CurrentPlayer, Board, NewBoard),
             display_board(NewBoard),
-            switch_player(CurrentPlayer, NextPlayer),
-            play_game_pvp_r(NewBoard, NextPlayer)
+            (
+                check_win(NewBoard, CurrentPlayer)
+                    -> !, write('Player '), write(CurrentPlayer), write(' won!'), nl
+                    ;
+                        switch_player(CurrentPlayer, NextPlayer),
+                        play_game_pvp_r(NewBoard, NextPlayer)
+            )
         ;
             writeln('Invalid move! Try again [row/column]. The move must be in the board and the cell must be empty.'),
             play_game_pvp_r(Board, CurrentPlayer)
     ).
+
+% Check if the given player has won
+check_win(Board, Player) :-
+    (
+        Player = o, check_top_bottom(Board) ; 
+        Player = x, check_left_right(Board)
+    ).
+
+% Check if player 'o' has connected the top and bottom sides
+check_top_bottom(Board) :-
+    get_board_size(Board, BoardSize),
+    end_node(o, EndNode, BoardSize),
+    get_start_nodes(Board, o, StartNodes),
+    member(StartNode, StartNodes),
+    dfs(Board, StartNode, EndNode, o).
+
+% Check if player 'x' has connected the left and right sides
+check_left_right(Board) :-
+    get_board_size(Board, BoardSize),
+    end_node(x, EndNode, BoardSize),
+    get_start_nodes(Board, x, StartNodes),
+    member(StartNode, StartNodes),
+    dfs(Board, StartNode, EndNode, x).
+
+% Define start node based on player
+start_node(o, (1, _)).
+start_node(x, (_, 1)).
+
+% Get the start nodes for a given player
+% A start node is a cell that belongs to the player and is on the edge of the board
+get_start_nodes(Board, Player, StartNodes) :-
+    findall(StartNode, (
+        start_node(Player, StartNode),
+        StartNode = (Row, Column),
+        get_cell(Board, Row, Column, Cell),
+        Cell = Player
+    ), StartNodes).
+
+% Define end node based on player and board size
+end_node(o, (BoardSize, _), BoardSize).
+end_node(x, (_, BoardSize), BoardSize).
+
+% Get the adjacent cells for a given cell that belong to the same player
+get_adjacent_cells(Board, (Row,Column), Player, AdjacentCells) :-
+    findall((AdjacentRow,AdjacentColumn), (
+        (AdjacentRow is Row-1, AdjacentColumn is Column,     % above
+        get_cell(Board, AdjacentRow, AdjacentColumn, Cell),
+        Cell = Player)
+    ;   (AdjacentRow is Row-1, AdjacentColumn is Column+1,   % above right
+        get_cell(Board, AdjacentRow, AdjacentColumn, Cell),
+        Cell = Player)
+    ;   (AdjacentRow is Row, AdjacentColumn is Column-1,     % left
+        get_cell(Board, AdjacentRow, AdjacentColumn, Cell),
+        Cell = Player)
+    ;   (AdjacentRow is Row, AdjacentColumn is Column+1,     % right
+        get_cell(Board, AdjacentRow, AdjacentColumn, Cell),
+        Cell = Player)
+    ;   (AdjacentRow is Row+1, AdjacentColumn is Column,     % below
+        get_cell(Board, AdjacentRow, AdjacentColumn, Cell),
+        Cell = Player)
+    ;   (AdjacentRow is Row+1, AdjacentColumn is Column-1,   % below left
+        get_cell(Board, AdjacentRow, AdjacentColumn, Cell),
+        Cell = Player)
+    ), AdjacentCells).
+
+% Depth-first search
+dfs(Board, StartNode, EndNode, Player) :-
+    dfs_r(Board, StartNode, EndNode, Player, [StartNode]).
+
+% Depth-first search recursive
+dfs_r(Board, StartNode, EndNode, Player, Visited) :-
+    StartNode = EndNode.
+dfs_r(Board, StartNode, EndNode, Player, Visited) :-
+    StartNode \= EndNode,
+    get_adjacent_cells(Board, StartNode, Player, AdjacentCells),
+    member(AdjacentCell, AdjacentCells),
+    \+ member(AdjacentCell, Visited),
+    dfs_r(Board, AdjacentCell, EndNode, Player, [AdjacentCell|Visited]).
 
 % Play the game in PvC Mode recursively
 play_game_pvc_r(Board, CurrentPlayer).
@@ -146,39 +234,7 @@ play_game_pvc_r(Board, CurrentPlayer).
 % Make a move on the board
 make_move(Move, CurrentPlayer, Board, NewBoard):-
     parse_move(Move, Row, Column),
-    replace(Board, Row, Column, CurrentPlayer, NewBoard),
-    (
-        check_win(NewBoard, CurrentPlayer, Row, Column)
-            ->  write('Player '), write(CurrentPlayer), write(' won!'), nl
-            ;
-                true
-    ).
-    
-% Check if the player won
-check_win(Board, CurrentPlayer, RowNumber, Column):-
-    get_column_number(Column, ColumnNumber),
-    check_win_r(Board, CurrentPlayer, RowNumber, ColumnNumber).
-
-% Check win recursively
-check_win_r(Board, CurrentPlayer, RowNumber, ColumnNumber):-
-    get_cell(Board, RowNumber, ColumnNumber, Cell),
-    Cell == CurrentPlayer,
-
-    PrevRowNumber is RowNumber - 1,
-    
-    check_win_r(Board, CurrentPlayer, PrevRowNumber, ColumnNumber); % Diagonal Up Left
-    
-    NextColumnNumber is ColumnNumber + 1,
-    check_win_r(Board, CurrentPlayer, PrevRowNumber, NextColumnNumber); % Diagonal Up Right
-    
-    PrevColumnNumber is ColumnNumber - 1,
-    check_win_r(Board, CurrentPlayer, RowNumber, PrevColumnNumber); % Left
-
-    check_win_r(Board, CurrentPlayer, RowNumber, NextColumnNumber); % Right
-
-    NextRowNumber is RowNumber + 1,
-    check_win_r(Board, CurrentPlayer, NextRowNumber, ColumnNumber); % Diagonal Down Right
-    check_win_r(Board, CurrentPlayer, NextRowNumber, PrevColumnNumber). % Diagonal Down Left
+    replace(Board, Row, Column, CurrentPlayer, NewBoard).
 
 % Replace a cell in the board
 replace(Board, Row, Column, CurrentPlayer, NewBoard):-
@@ -240,17 +296,3 @@ get_board_size_r([], Iter, BoardSize):-
 get_board_size_r([_|Board], Iter, BoardSize):-
     NewIter is Iter + 1,
     get_board_size_r(Board, NewIter, BoardSize).
-
-test(RowNumber, ColumnNumber):-
-    NextRowNumber is RowNumber + 1,
-    PrevRowNumber is RowNumber - 1,
-    NextColumnNumber is ColumnNumber + 1,
-    PrevColumnNumber is ColumnNumber - 1,
-    writeln(NextRowNumber),
-    writeln(PrevRowNumber),
-    writeln(NextColumnNumber),
-    writeln(PrevColumnNumber),
-
-    false;
-    true;
-    false.
