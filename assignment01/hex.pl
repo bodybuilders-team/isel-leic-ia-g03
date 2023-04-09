@@ -14,20 +14,15 @@
 % To run the game, use this query: 
 % ?- play.
 %
-% Player 1 plays with 'o' pieces and wins if they connect the top and bottom sides of the board.
-% Player 2 plays with 'x' pieces and wins if they connect the left and right sides of the board.
+% Player 1 plays with black pieces and wins if they connect the top and bottom sides of the board.
+% Player 2 plays with white pieces and wins if they connect the left and right sides of the board.
 % ====================================================
-
-% TODOS:
-% - Minimax (PvC)
-% - Clean up code
-% - Change the o and x to black and white
 
 % Explanation of the game rules
 help :-
     writeln('Welcome to the Prolog Hex Game!'),
     writeln('The game is played on a hexagonal grid, with two players taking turns to place their pieces on the board.'),
-    writeln('The goal is to connect the top and bottom sides of the board for Player 1 (\'o\') or the left and right sides of the board for Player 2 (\'x\').'),
+    writeln('The goal is to connect the top and bottom sides of the board for Player 1 (black) or the left and right sides of the board for Player 2 (white).'),
     writeln('The game is over when one of the players has connected the sides of the board.'),
     writeln('The game can be played in two modes: PvP or PvC.'),
     writeln('In PvP mode, the players take turns to place their pieces on the board.'),
@@ -44,7 +39,7 @@ play :-
     get_board_size(BoardSize),
     create_board(BoardSize, Board),
     display_board(Board),
-    play_game(GameMode, Board). % TODO: dá me ideia q a convenção é overloading, por isso ter play/1 e play/2
+    play(GameMode, Board).
  
 % Gets the game mode
 get_game_mode(GameMode):-
@@ -120,19 +115,17 @@ print_spaces(SpacesRemaining):-
 
 % Displays a row
 % 0 - Empty cell
-% o - Player 1 (Black)
-% x - Player 2 (White)
+% 1 - Player 1 (Black)
+% 2 - Player 2 (White)
 display_row([]).
 display_row([0|Row]):-
     write('. '),
     display_row(Row).
-display_row([o|Row]):-
-    %write(' \u2b22 '),
-    write('o '),
+display_row([1|Row]):-
+    write('\u2b22 '),
     display_row(Row).
-display_row([x|Row]):-
-    %write(' \u2b21 '),
-    write('x '),
+display_row([2|Row]):-
+    write('\u2b21 '),
     display_row(Row).
 
 % ==============================================
@@ -142,11 +135,11 @@ display_row([x|Row]):-
 % GameMode: 0 - PvP, 1 - PvC
 
 % Play the game in PvP Mode
-play_game(0, Board):-
-    play_game_pvp_r(Board, o).
+play(0, Board):-
+    play_game_pvp_r(Board, 1).
 % Play the game in PvC Mode
-play_game(1, Board):-
-    play_game_pvc_r(Board, o).
+play(1, Board):-
+    play_game_pvc_r(Board, 1).
 
 % Play the game in PvP Mode recursively
 play_game_pvp_r(Board, CurrentPlayer):-
@@ -160,7 +153,7 @@ play_game_pvp_r(Board, CurrentPlayer):-
 
                     (
                         check_win(NewBoard, CurrentPlayer)
-                            -> !, write('Player '), write(CurrentPlayer), write(' won!'), nl
+                            -> !, write('Player '), write(CurrentPlayer), writeln(' has won!')
                             ; (
                                 switch_player(CurrentPlayer, NextPlayer),
                                 play_game_pvp_r(NewBoard, NextPlayer)
@@ -180,29 +173,29 @@ play_game_pvp_r(Board, CurrentPlayer):-
 % Check if the given player has won
 check_win(Board, Player) :-
     (
-        Player = o, check_top_bottom(Board) ; 
-        Player = x, check_left_right(Board)
+        Player = 1, check_top_bottom(Board) ; 
+        Player = 2, check_left_right(Board)
     ).
 
-% Check if player 'o' has connected the top and bottom sides
+% Check if player 1 has connected the top and bottom sides
 check_top_bottom(Board) :-
     get_board_size(Board, BoardSize),
-    end_node(o, EndNode, BoardSize),
-    get_start_nodes(Board, o, StartNodes),
+    end_node(1, EndNode, BoardSize),
+    get_start_nodes(Board, 1, StartNodes),
     member(StartNode, StartNodes),
-    dfs(Board, StartNode, EndNode, o).
+    dfs(Board, StartNode, EndNode, 1).
 
-% Check if player 'x' has connected the left and right sides
+% Check if player 2 has connected the left and right sides
 check_left_right(Board) :-
     get_board_size(Board, BoardSize),
-    end_node(x, EndNode, BoardSize),
-    get_start_nodes(Board, x, StartNodes),
+    end_node(2, EndNode, BoardSize),
+    get_start_nodes(Board, 2, StartNodes),
     member(StartNode, StartNodes),
-    dfs(Board, StartNode, EndNode, x).
+    dfs(Board, StartNode, EndNode, 2).
 
 % Define start node based on player
-start_node(o, (1, _)).
-start_node(x, (_, 1)).
+start_node(1, (1, _)).
+start_node(2, (_, 1)).
 
 % Get the start nodes for a given player
 % A start node is a cell that belongs to the player and is on the edge of the board
@@ -215,8 +208,8 @@ get_start_nodes(Board, Player, StartNodes) :-
     ), StartNodes).
 
 % Define end node based on player and board size
-end_node(o, (BoardSize, _), BoardSize).
-end_node(x, (_, BoardSize), BoardSize).
+end_node(1, (BoardSize, _), BoardSize).
+end_node(2, (_, BoardSize), BoardSize).
 
 % Get the adjacent cells for a given cell that belong to the same player
 get_adjacent_cells(Board, (Row,Column), Player, AdjacentCells) :-
@@ -264,7 +257,7 @@ play_game_pvc_r(Board, Player):-
                     display_board(NewBoard),
                     (
                         check_win(NewBoard, Player)
-                            -> !, write('Player '), write(Player), write(' won!'), nl
+                            -> !, write('Player '), write(Player), writeln(' has won!')
                             ; (
                                 switch_player(Player, Computer),
                                 get_computer_move(NewBoard, Computer, ComputerRow, ComputerColumn),
@@ -275,7 +268,7 @@ play_game_pvc_r(Board, Player):-
 
                                 (
                                     check_win(NewNewBoard, Computer)
-                                        -> !, write('Computer '), write(Computer), write(' won!'), nl
+                                        -> !, writeln('Computer has won!')
                                         ; play_game_pvc_r(NewNewBoard, Player)
                                 )
                             )
@@ -296,7 +289,7 @@ get_computer_move(Board, Computer, Row, Column):-
 % Minimax algorithm to find the optimal move for the computer
 minimax(Board, Player, BoardSize, BestRow, BestColumn):-
     % Set the maximum depth for the minimax algorithm
-    Depth is 50,
+    Depth is 3,
     % Initialize alpha and beta values
     Alpha is -1000000,
     Beta is 1000000,
@@ -307,13 +300,11 @@ minimax(Board, Player, BoardSize, BestRow, BestColumn):-
 % Parameters: Board, Player, Depth, BoardSize, Alpha, Beta
 % Return: BestEval, BestRow, BestColumn
 max_value(Board, Player, Depth, BoardSize, Alpha, Beta, BestEval, BestRow, BestColumn):-
-    Alpha1 is Alpha, % Alpha copy
-    Beta1 is Beta, % Beta copy
     CurrentBestEval is -1000000,
 
     get_all_possible_moves(Board, BoardSize, Moves),
 
-    max_value_loop(Board, Player, Depth, BoardSize, Moves, Alpha1, Beta1, CurrentBestEval, BestEval, _, (BestRow, BestColumn)).
+    max_value_loop(Board, Player, Depth, BoardSize, Moves, Alpha, Beta, CurrentBestEval, BestEval, _, (BestRow, BestColumn)).
 
 % Loop through all the possible moves and calculate the maximum value
 % Parameters: Board, Player, Depth, BoardSize, Moves, Alpha, Beta, CurrentBestEval, CurrentBestMove
@@ -339,18 +330,18 @@ max_value_loop(Board, Player, Depth, BoardSize, [Move|Rest], Alpha, Beta, Curren
                 min_value(NewBoard, OtherPlayer, NewDepth, BoardSize, Alpha, Beta, ChildEval, _, _),
 
                 % Update the maximum value
-                (ChildEval > CurrentBestEval
-                    -> (
-                        NewCurrentBestEval is ChildEval,
-                        NewCurrentBestMove = Move,
-                        NewAlpha is max(Alpha, ChildEval)
-                    )
-                    ;
-                    (
-                        NewCurrentBestEval is CurrentBestEval,
-                        NewCurrentBestMove = CurrentBestMove,
-                        NewAlpha is Alpha
-                    )
+                (
+                    ChildEval > CurrentBestEval
+                        -> (
+                            NewCurrentBestEval is ChildEval,
+                            NewCurrentBestMove = Move,
+                            NewAlpha is max(Alpha, ChildEval)
+                        )
+                        ; (
+                            NewCurrentBestEval is CurrentBestEval,
+                            NewCurrentBestMove = CurrentBestMove,
+                            NewAlpha is Alpha
+                        )
                 ),
                 (
                     Beta =< NewAlpha % Prune
@@ -367,13 +358,11 @@ max_value_loop(Board, Player, Depth, BoardSize, [Move|Rest], Alpha, Beta, Curren
 % Parameters: Board, Player, Depth, BoardSize, Alpha, Beta
 % Return: BestEval, BestRow, BestColumn
 min_value(Board, Player, Depth, BoardSize, Alpha, Beta, BestEval, BestRow, BestColumn):-
-    Alpha1 is Alpha, % Alpha copy
-    Beta1 is Beta, % Beta copy
     CurrentBestEval is 1000000,
 
     get_all_possible_moves(Board, BoardSize, Moves),
 
-    min_value_loop(Board, Player, Depth, BoardSize, Moves, Alpha1, Beta1, CurrentBestEval, BestEval, _, (BestRow, BestColumn)).
+    min_value_loop(Board, Player, Depth, BoardSize, Moves, Alpha, Beta, CurrentBestEval, BestEval, _, (BestRow, BestColumn)).
 
 % Loop through all the possible moves and calculate the minimum value
 % Parameters: Board, Player, Depth, BoardSize, Moves, Alpha, Beta, CurrentBestEval, CurrentBestMove
@@ -399,18 +388,18 @@ min_value_loop(Board, Player, Depth, BoardSize, [Move|Rest], Alpha, Beta, Curren
                 max_value(NewBoard, OtherPlayer, NewDepth, BoardSize, Alpha, Beta, ChildEval, _, _),
 
                 % Update the minimum value
-                (ChildEval < CurrentBestEval
-                    -> (
-                        NewCurrentBestEval is ChildEval,
-                        NewCurrentBestMove = Move,
-                        NewBeta is min(Beta, ChildEval)
-                    )
-                    ;
-                    (
-                        NewCurrentBestEval is CurrentBestEval,
-                        NewCurrentBestMove = CurrentBestMove,
-                        NewBeta is Beta
-                    )
+                (
+                    ChildEval < CurrentBestEval
+                        -> (
+                            NewCurrentBestEval is ChildEval,
+                            NewCurrentBestMove = Move,
+                            NewBeta is min(Beta, ChildEval)
+                        )
+                        ; (
+                            NewCurrentBestEval is CurrentBestEval,
+                            NewCurrentBestMove = CurrentBestMove,
+                            NewBeta is Beta
+                        )
                 ),
                 (
                     NewBeta =< Alpha % Prune
@@ -455,8 +444,8 @@ prompt_player(Player, Move):-
     read(Move).
 
 % Switch the player
-switch_player(o, x).
-switch_player(x, o).
+switch_player(1, 2).
+switch_player(2, 1).
 
 % Validate a move on the board
 validate_move(Row, Column, Board):-
