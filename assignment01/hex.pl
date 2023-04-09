@@ -152,23 +152,30 @@ play_game(1, Board):-
 play_game_pvp_r(Board, CurrentPlayer):-
     prompt_player(CurrentPlayer, Move),
     (
-        (
-            parse_move(Move, Row, Column),
-            validate_move(Row, Column, Board)
-        )
-        ->  make_move(Row, Column, CurrentPlayer, Board, NewBoard),
-            display_board(NewBoard),
-            (
-                check_win(NewBoard, CurrentPlayer)
-                    -> !, write('Player '), write(CurrentPlayer), write(' won!'), nl
-                    ;
-                        switch_player(CurrentPlayer, NextPlayer),
-                        play_game_pvp_r(NewBoard, NextPlayer)
+        parse_move(Move, Row, Column),
+        validate_move(Row, Column, Board)
+            ->  (
+                    make_move(Row, Column, CurrentPlayer, Board, NewBoard),
+                    display_board(NewBoard),
+
+                    (
+                        check_win(NewBoard, CurrentPlayer)
+                            -> !, write('Player '), write(CurrentPlayer), write(' won!'), nl
+                            ; (
+                                switch_player(CurrentPlayer, NextPlayer),
+                                play_game_pvp_r(NewBoard, NextPlayer)
+                            )
+                    )
             )
-        ;
-            writeln('Invalid move! Try again [row/column]. The move must be in the board and the cell must be empty.'),
-            play_game_pvp_r(Board, CurrentPlayer)
+            ; (
+                writeln('Invalid move! The move must be in the board and the cell must be empty. Try again [row/column] e.g. 1/a.'),
+                play_game_pvp_r(Board, CurrentPlayer)
+            )
     ).
+
+% ==============================================
+% ============== Win Check =====================
+% ==============================================
 
 % Check if the given player has won
 check_win(Board, Player) :-
@@ -215,23 +222,17 @@ end_node(x, (_, BoardSize), BoardSize).
 get_adjacent_cells(Board, (Row,Column), Player, AdjacentCells) :-
     findall((AdjacentRow,AdjacentColumn), (
         (AdjacentRow is Row-1, AdjacentColumn is Column,     % above
-        get_cell(Board, AdjacentRow, AdjacentColumn, Cell),
-        Cell = Player)
+        get_cell(Board, AdjacentRow, AdjacentColumn, Player))
     ;   (AdjacentRow is Row-1, AdjacentColumn is Column+1,   % above right
-        get_cell(Board, AdjacentRow, AdjacentColumn, Cell),
-        Cell = Player)
+        get_cell(Board, AdjacentRow, AdjacentColumn, Player))
     ;   (AdjacentRow is Row, AdjacentColumn is Column-1,     % left
-        get_cell(Board, AdjacentRow, AdjacentColumn, Cell),
-        Cell = Player)
+        get_cell(Board, AdjacentRow, AdjacentColumn, Player))
     ;   (AdjacentRow is Row, AdjacentColumn is Column+1,     % right
-        get_cell(Board, AdjacentRow, AdjacentColumn, Cell),
-        Cell = Player)
+        get_cell(Board, AdjacentRow, AdjacentColumn, Player))
     ;   (AdjacentRow is Row+1, AdjacentColumn is Column,     % below
-        get_cell(Board, AdjacentRow, AdjacentColumn, Cell),
-        Cell = Player)
+        get_cell(Board, AdjacentRow, AdjacentColumn, Player))
     ;   (AdjacentRow is Row+1, AdjacentColumn is Column-1,   % below left
-        get_cell(Board, AdjacentRow, AdjacentColumn, Cell),
-        Cell = Player)
+        get_cell(Board, AdjacentRow, AdjacentColumn, Player))
     ), AdjacentCells).
 
 % Depth-first search
@@ -239,7 +240,7 @@ dfs(Board, StartNode, EndNode, Player) :-
     dfs_r(Board, StartNode, EndNode, Player, [StartNode]).
 
 % Depth-first search recursive
-dfs_r(Board, StartNode, EndNode, Player, Visited) :-
+dfs_r(_, StartNode, EndNode, _, _) :-
     StartNode = EndNode.
 dfs_r(Board, StartNode, EndNode, Player, Visited) :-
     StartNode \= EndNode,
@@ -248,59 +249,43 @@ dfs_r(Board, StartNode, EndNode, Player, Visited) :-
     \+ member(AdjacentCell, Visited),
     dfs_r(Board, AdjacentCell, EndNode, Player, [AdjacentCell|Visited]).
 
+% ==============================================
+% ============= Player vs Computer =============
+% ==============================================
+
 % Play the game in PvC Mode recursively
 play_game_pvc_r(Board, Player):-
     prompt_player(Player, Move),
     (
-        (
-            parse_move(Move, Row, Column),
-            validate_move(Row, Column, Board)
-        )
-        ->  make_move(Row, Column, Player, Board, NewBoard),
-            display_board(NewBoard),
-            (
-                check_win(NewBoard, Player)
-                    -> !, write('Player '), write(Player), write(' won!'), nl
-                    ;
+        parse_move(Move, Row, Column),
+        validate_move(Row, Column, Board)
+            ->  (
+                    make_move(Row, Column, Player, Board, NewBoard),
+                    display_board(NewBoard),
                     (
-                        switch_player(Player, Computer),
-                        get_computer_move(NewBoard, Computer, ComputerRow, ComputerColumn),
-                        get_column_letter(ComputerColumn, ComputerColumnLetter),
-                        write('Computer played: '), write(ComputerRow), write('/'), write(ComputerColumnLetter), nl,
-                        make_move(ComputerRow, ComputerColumn, Computer, NewBoard, NewNewBoard),
-                        display_board(NewNewBoard),
-                        (
-                            check_win(NewNewBoard, Computer)
-                                -> !, write('Computer '), write(Computer), write(' won!'), nl
-                                ;
-                                play_game_pvc_r(NewNewBoard, Player)
-                        )
+                        check_win(NewBoard, Player)
+                            -> !, write('Player '), write(Player), write(' won!'), nl
+                            ; (
+                                switch_player(Player, Computer),
+                                get_computer_move(NewBoard, Computer, ComputerRow, ComputerColumn),
+                                get_column_letter(ComputerColumn, ComputerColumnLetter),
+                                write('Computer played: '), write(ComputerRow), write('/'), write(ComputerColumnLetter), nl,
+                                make_move(ComputerRow, ComputerColumn, Computer, NewBoard, NewNewBoard),
+                                display_board(NewNewBoard),
+
+                                (
+                                    check_win(NewNewBoard, Computer)
+                                        -> !, write('Computer '), write(Computer), write(' won!'), nl
+                                        ; play_game_pvc_r(NewNewBoard, Player)
+                                )
+                            )
                     )
             )
-        ;
-            writeln('Invalid move! Try again [row/column]. The move must be in the board and the cell must be empty.'),
-            play_game_pvc_r(Board, Player)
+            ; (
+                writeln('Invalid move! The move must be in the board and the cell must be empty. Try again [row/column] e.g. 1/a.'),
+                play_game_pvc_r(Board, Player)
+            )
     ).
-
-/*% Get the computer move recursively (total random version)
-get_computer_move_r(Board, Computer, BoardSize, Row, Column):-
-    random(1, BoardSize, RandomRow),
-    random(1, BoardSize, RandomColumn),
-    get_cell(Board, RandomRow, RandomColumn, Cell),
-    (
-        Cell = 0
-            -> Row = RandomRow, Column = RandomColumn
-            ;
-            get_computer_move_r(Board, Computer, BoardSize, Row, Column)
-    ).*/
-
-% ====================================================================================
-% ===============GGGGGGGGG======PPPPPPPPP======TTTTTTTTTTT============================
-% ===============G==============P=======P===========T=================================
-% ===============G====GGGG======PPPPPPPPP===========T=================================
-% ===============G=======G======P===================T=================================
-% ===============GGGGGGGGG======P===================T=================================
-% ====================================================================================
 
 % Get the computer move using minimax algorithm
 get_computer_move(Board, Computer, Row, Column):-
@@ -316,106 +301,110 @@ minimax(Board, Player, BoardSize, BestRow, BestColumn):-
     Alpha is -1000000,
     Beta is 1000000,
 
-    max_value(Board, Player, Depth, BoardSize, _, Alpha, Beta, BestRow, BestColumn).
+    max_value(Board, Player, Depth, BoardSize, Alpha, Beta, _, BestRow, BestColumn).
 
-max_value(Board, Player, Depth, BoardSize, Eval, Alpha, Beta, BestRow, BestColumn):-
+% Calculate the maximum value for the current player
+% Parameters: Board, Player, Depth, BoardSize, Alpha, Beta
+% Return: Eval, BestRow, BestColumn
+max_value(Board, Player, Depth, BoardSize, Alpha, Beta, Eval, BestRow, BestColumn):-
     Alpha1 is Alpha, % Alpha copy
     Beta1 is Beta, % Beta copy
-
     MaxEval is -1000000,
 
-    get_all_possible_moves(Board, Player, BoardSize, Moves),
+    get_all_possible_moves(Board, BoardSize, Moves),
 
-    max_value_loop(Board, Player, Depth, BoardSize, Moves, MaxEval, Eval, (BestRow, BestColumn), Alpha1, Beta1).
+    max_value_loop(Board, Player, Depth, BoardSize, Moves, Alpha1, Beta1, MaxEval, Eval, (BestRow, BestColumn)).
 
-max_value_loop(_, _, _, _, [], MaxEval, Eval, _, _, _):-
-    Eval is MaxEval.
-max_value_loop(Board, Player, Depth, BoardSize, [[Row, Column]|Moves], MaxEval, Eval, BestMove, Alpha1, Beta1):-
+% Loop through all the possible moves and calculate the maximum value
+% Parameters: Board, Player, Depth, BoardSize, Moves, Alpha, Beta, MaxEval
+% Return: Eval, BestMove
+max_value_loop(_, _, _, _, [Move|[]], _, _, MaxEval, Eval, BestMove):- % If there is only one move, return the move
+    Eval is MaxEval,
+    BestMove = Move.
+max_value_loop(Board, Player, Depth, BoardSize, [Move|Rest], Alpha, Beta, MaxEval, Eval, BestMove):-
     % Make the move on a dummy board
+    Move = (Row, Column),
     make_move(Row, Column, Player, Board, NewBoard),
     (
         % Check if the game is over
         check_win(NewBoard, Player)
-        ->
-        (
-            Eval is Depth % If the player wins, return a high score
-        )
-        ;
-        (
-            /*Depth =< 0 % If the maximum depth is reached, return the heuristic score
-            -> heuristic_score(Board, Player, Score)
-            ;*/
-
-            % Switch the player and decrease the depth, and calculate the best score for the other player
-            switch_player(Player, OtherPlayer),
-            NewDepth is Depth - 1,
-            min_value(NewBoard, OtherPlayer, NewDepth, BoardSize, Eval1, Alpha1, Beta1, _, _),
-            
-            (MaxEval < Eval1 ->
-            (
-                MaxEval1 is Eval1,
-                BestMove = [Row, Column], // TODO BUGGED
-                Alpha1 is max(Alpha1, Eval)
-            )),
-            (MaxEval1 < Beta1 ->
-            max_value_loop(Board, Player, Depth, BoardSize, Moves, MaxEval1, Eval, _, Alpha1, Beta1)
-            ;
-            Eval is MaxEval1
+            -> (
+                Eval is Depth, 
+                BestMove = Move
             )
-        )
+            ; (
+                % Switch the player and decrease the depth, and calculate the best score for the other player
+                switch_player(Player, OtherPlayer),
+                NewDepth is Depth - 1,
+                min_value(NewBoard, OtherPlayer, NewDepth, BoardSize, Alpha, Beta, ChildEval, _, _),
+
+                % Update the maximum value
+                NewMaxEval is max(MaxEval, ChildEval),
+                NewAlpha is max(Alpha, ChildEval),
+                (
+                    Beta =< NewAlpha % Prune
+                        -> (
+                            Eval is NewMaxEval, 
+                            BestMove = Move
+                        )
+                        ; max_value_loop(Board, Player, Depth, BoardSize, Rest, NewAlpha, Beta, NewMaxEval, Eval, BestMove)
+                )
+            )
     ).
 
-min_value(Board, Player, Depth, BoardSize, Eval, Alpha, Beta, BestRow, BestColumn):-
+% Calculate the minimum value for the current player
+% Parameters: Board, Player, Depth, BoardSize, Alpha, Beta
+% Return: Eval, BestRow, BestColumn
+min_value(Board, Player, Depth, BoardSize, Alpha, Beta, Eval, BestRow, BestColumn):-
     Alpha1 is Alpha, % Alpha copy
     Beta1 is Beta, % Beta copy
-
     MinEval is 1000000,
 
-    get_all_possible_moves(Board, Player, BoardSize, Moves),
+    get_all_possible_moves(Board, BoardSize, Moves),
 
-    min_value_loop(Board, Player, Depth, BoardSize, Moves, MinEval, Eval, (BestRow, BestColumn), Alpha1, Beta1).
+    min_value_loop(Board, Player, Depth, BoardSize, Moves, Alpha1, Beta1, MinEval, Eval, (BestRow, BestColumn)).
 
-min_value_loop(_, _, _, _, [], MinEval, Eval, _, _, _):-
-    Eval is MinEval.
-min_value_loop(Board, Player, Depth, BoardSize, [[Row, Column]|Moves], MinEval, Eval, BestMove, Alpha1, Beta1):-
+min_value_loop(_, _, _, _, [Move|[]], _, _, MinEval, Eval, BestMove):- % If there is only one move, return the move
+    Eval is MinEval,
+    BestMove = Move.
+min_value_loop(Board, Player, Depth, BoardSize, [Move|Rest], Alpha, Beta, MinEval, Eval, BestMove):-
     % Make the move on a dummy board
+    Move = (Row, Column),
     make_move(Row, Column, Player, Board, NewBoard),
     (
         % Check if the game is over
         check_win(NewBoard, Player)
-        ->
-        (
-            Eval is -Depth % If the player wins, return a high score
-        )
-        ;
-        (
-            /*Depth =< 0 % If the maximum depth is reached, return the heuristic score
-            -> heuristic_score(Board, Player, Score)
-            ;*/
-
-            % Switch the player and decrease the depth, and calculate the best score for the other player
-            switch_player(Player, OtherPlayer),
-            NewDepth is Depth - 1,
-            max_value(NewBoard, OtherPlayer, NewDepth, BoardSize, Eval1, Alpha1, Beta1, _, _),
-
-            (MinEval > Eval1 ->
-            (
-                MinEval1 is Eval1,
-                BestMove = [Row, Column], // TODO BUGGED
-                Beta1 is min(Beta1, Eval)
-            )),
-            (MinEval1 > Alpha1 ->
-            min_value_loop(Board, Player, Depth, BoardSize, Moves, MinEval1, Eval, _, Alpha1, Beta1)
-            ;
-            Eval is MinEval1
+            -> (
+                Eval is -Depth, 
+                BestMove = Move
             )
-        )
+            ; (
+                % Switch the player and decrease the depth, and calculate the best score for the other player
+                switch_player(Player, OtherPlayer),
+                NewDepth is Depth - 1,
+                max_value(NewBoard, OtherPlayer, NewDepth, BoardSize, Alpha, Beta, ChildEval, _, _),
+
+                % Update the minimum value
+                NewMinEval is min(MinEval, ChildEval),
+                NewBeta is min(Beta, ChildEval),
+                (
+                    NewBeta =< Alpha % Prune
+                        -> (
+                            Eval is NewMinEval, 
+                            BestMove = Move
+                        )
+                        ; min_value_loop(Board, Player, Depth, BoardSize, Rest, Alpha, NewBeta, NewMinEval, Eval, BestMove)
+                )
+            )
     ).
 
-
-% Get all possible moves for the player
-get_all_possible_moves(Board, Player, BoardSize, Moves):-
-    findall([Row, Column], (between(1, BoardSize, Row), between(1, BoardSize, Column), get_cell(Board, Row, Column, 0)), Moves).
+% Get all possible moves for the current player
+get_all_possible_moves(Board, BoardSize, Moves):-
+    findall((Row, Column),(
+        between(1, BoardSize, Row),
+        between(1, BoardSize, Column),
+        get_cell(Board, Row, Column, 0)
+    ), Moves).
 
 % ===========================================================================
 % ===========================================================================
@@ -449,8 +438,7 @@ validate_move(Row, Column, Board):-
     get_board_size(Board, BoardSize),
     between(1, BoardSize, Row),
     between(1, BoardSize, Column),
-    get_cell(Board, Row, Column, Cell),
-    Cell == 0.
+    get_cell(Board, Row, Column, 0).
 
 % Get a cell from the board
 get_cell(Board, Row, Column, Cell):-
