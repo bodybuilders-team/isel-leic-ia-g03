@@ -305,23 +305,23 @@ minimax(Board, Player, BoardSize, BestRow, BestColumn):-
 
 % Calculate the maximum value for the current player
 % Parameters: Board, Player, Depth, BoardSize, Alpha, Beta
-% Return: Eval, BestRow, BestColumn
-max_value(Board, Player, Depth, BoardSize, Alpha, Beta, Eval, BestRow, BestColumn):-
+% Return: BestEval, BestRow, BestColumn
+max_value(Board, Player, Depth, BoardSize, Alpha, Beta, BestEval, BestRow, BestColumn):-
     Alpha1 is Alpha, % Alpha copy
     Beta1 is Beta, % Beta copy
-    MaxEval is -1000000,
+    CurrentBestEval is -1000000,
 
     get_all_possible_moves(Board, BoardSize, Moves),
 
-    max_value_loop(Board, Player, Depth, BoardSize, Moves, Alpha1, Beta1, MaxEval, Eval, (BestRow, BestColumn)).
+    max_value_loop(Board, Player, Depth, BoardSize, Moves, Alpha1, Beta1, CurrentBestEval, BestEval, _, (BestRow, BestColumn)).
 
 % Loop through all the possible moves and calculate the maximum value
-% Parameters: Board, Player, Depth, BoardSize, Moves, Alpha, Beta, MaxEval
-% Return: Eval, BestMove
-max_value_loop(_, _, _, _, [Move|[]], _, _, MaxEval, Eval, BestMove):- % If there is only one move, return the move
-    Eval is MaxEval,
-    BestMove = Move.
-max_value_loop(Board, Player, Depth, BoardSize, [Move|Rest], Alpha, Beta, MaxEval, Eval, BestMove):-
+% Parameters: Board, Player, Depth, BoardSize, Moves, Alpha, Beta, CurrentBestEval, CurrentBestMove
+% Return: BestEval, BestMove
+max_value_loop(_, _, _, _, [], _, _, CurrentBestEval, BestEval, CurrentBestMove, BestMove):- % Reaching the end of the list, return the current best
+    BestEval is CurrentBestEval,
+    BestMove = CurrentBestMove.
+max_value_loop(Board, Player, Depth, BoardSize, [Move|Rest], Alpha, Beta, CurrentBestEval, BestEval, CurrentBestMove, BestMove):-
     % Make the move on a dummy board
     Move = (Row, Column),
     make_move(Row, Column, Player, Board, NewBoard),
@@ -329,7 +329,7 @@ max_value_loop(Board, Player, Depth, BoardSize, [Move|Rest], Alpha, Beta, MaxEva
         % Check if the game is over
         check_win(NewBoard, Player)
             -> (
-                Eval is Depth, 
+                BestEval is Depth, 
                 BestMove = Move
             )
             ; (
@@ -339,35 +339,49 @@ max_value_loop(Board, Player, Depth, BoardSize, [Move|Rest], Alpha, Beta, MaxEva
                 min_value(NewBoard, OtherPlayer, NewDepth, BoardSize, Alpha, Beta, ChildEval, _, _),
 
                 % Update the maximum value
-                NewMaxEval is max(MaxEval, ChildEval),
-                NewAlpha is max(Alpha, ChildEval),
+                (ChildEval > CurrentBestEval
+                    -> (
+                        NewCurrentBestEval is ChildEval,
+                        NewCurrentBestMove = Move,
+                        NewAlpha is max(Alpha, ChildEval)
+                    )
+                    ;
+                    (
+                        NewCurrentBestEval is CurrentBestEval,
+                        NewCurrentBestMove = CurrentBestMove,
+                        NewAlpha is Alpha
+                    )
+                ),
                 (
                     Beta =< NewAlpha % Prune
                         -> (
-                            Eval is NewMaxEval, 
-                            BestMove = Move
+                            BestEval is NewCurrentBestEval, 
+                            BestMove = NewCurrentBestMove
                         )
-                        ; max_value_loop(Board, Player, Depth, BoardSize, Rest, NewAlpha, Beta, NewMaxEval, Eval, BestMove)
+                        ; max_value_loop(Board, Player, Depth, BoardSize, Rest, NewAlpha, Beta, NewCurrentBestEval, BestEval, NewCurrentBestMove, BestMove)
                 )
             )
     ).
 
 % Calculate the minimum value for the current player
 % Parameters: Board, Player, Depth, BoardSize, Alpha, Beta
-% Return: Eval, BestRow, BestColumn
-min_value(Board, Player, Depth, BoardSize, Alpha, Beta, Eval, BestRow, BestColumn):-
+% Return: BestEval, BestRow, BestColumn
+min_value(Board, Player, Depth, BoardSize, Alpha, Beta, BestEval, BestRow, BestColumn):-
     Alpha1 is Alpha, % Alpha copy
     Beta1 is Beta, % Beta copy
-    MinEval is 1000000,
+    CurrentBestEval is 1000000,
 
     get_all_possible_moves(Board, BoardSize, Moves),
 
-    min_value_loop(Board, Player, Depth, BoardSize, Moves, Alpha1, Beta1, MinEval, Eval, (BestRow, BestColumn)).
+    min_value_loop(Board, Player, Depth, BoardSize, Moves, Alpha1, Beta1, CurrentBestEval, BestEval, _, (BestRow, BestColumn)).
 
-min_value_loop(_, _, _, _, [Move|[]], _, _, MinEval, Eval, BestMove):- % If there is only one move, return the move
-    Eval is MinEval,
-    BestMove = Move.
-min_value_loop(Board, Player, Depth, BoardSize, [Move|Rest], Alpha, Beta, MinEval, Eval, BestMove):-
+% Loop through all the possible moves and calculate the minimum value
+% Parameters: Board, Player, Depth, BoardSize, Moves, Alpha, Beta, CurrentBestEval, CurrentBestMove
+% Return: BestEval, BestMove
+min_value_loop(_, _, _, _, [], _, _, CurrentBestEval, BestEval, CurrentBestMove, BestMove):- % Reaching the end of the list, return the current best
+    BestEval is CurrentBestEval,
+    BestMove = CurrentBestMove.
+min_value_loop(Board, Player, Depth, BoardSize, [Move|Rest], Alpha, Beta, CurrentBestEval, BestEval, CurrentBestMove, BestMove):-
     % Make the move on a dummy board
     Move = (Row, Column),
     make_move(Row, Column, Player, Board, NewBoard),
@@ -375,7 +389,7 @@ min_value_loop(Board, Player, Depth, BoardSize, [Move|Rest], Alpha, Beta, MinEva
         % Check if the game is over
         check_win(NewBoard, Player)
             -> (
-                Eval is -Depth, 
+                BestEval is -Depth, 
                 BestMove = Move
             )
             ; (
@@ -385,15 +399,26 @@ min_value_loop(Board, Player, Depth, BoardSize, [Move|Rest], Alpha, Beta, MinEva
                 max_value(NewBoard, OtherPlayer, NewDepth, BoardSize, Alpha, Beta, ChildEval, _, _),
 
                 % Update the minimum value
-                NewMinEval is min(MinEval, ChildEval),
-                NewBeta is min(Beta, ChildEval),
+                (ChildEval < CurrentBestEval
+                    -> (
+                        NewCurrentBestEval is ChildEval,
+                        NewCurrentBestMove = Move,
+                        NewBeta is min(Beta, ChildEval)
+                    )
+                    ;
+                    (
+                        NewCurrentBestEval is CurrentBestEval,
+                        NewCurrentBestMove = CurrentBestMove,
+                        NewBeta is Beta
+                    )
+                ),
                 (
                     NewBeta =< Alpha % Prune
                         -> (
-                            Eval is NewMinEval, 
-                            BestMove = Move
+                            BestEval is NewCurrentBestEval, 
+                            BestMove = NewCurrentBestMove
                         )
-                        ; min_value_loop(Board, Player, Depth, BoardSize, Rest, Alpha, NewBeta, NewMinEval, Eval, BestMove)
+                        ; min_value_loop(Board, Player, Depth, BoardSize, Rest, Alpha, NewBeta, NewCurrentBestEval, BestEval, NewCurrentBestMove, BestMove)
                 )
             )
     ).
