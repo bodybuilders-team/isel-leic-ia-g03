@@ -129,7 +129,7 @@ display_row([2|Row]):-
     display_row(Row).
 
 % ==============================================
-% ============== Game Play =====================
+% ============== Gameplay =====================
 % ==============================================
 
 % GameMode: 0 - PvP, 1 - PvC
@@ -140,6 +140,11 @@ play(0, Board):-
 % Play the game in PvC Mode
 play(1, Board):-
     play_game_pvc_r(Board, 1).
+
+
+% ========================================================
+% =================== Player vs Player ===================
+% ========================================================
 
 % Play the game in PvP Mode recursively
 play_game_pvp_r(Board, CurrentPlayer):-
@@ -289,7 +294,9 @@ get_computer_move(Board, Computer, Row, Column):-
 % Minimax algorithm to find the optimal move for the computer
 minimax(Board, Player, BoardSize, BestRow, BestColumn):-
     % Set the maximum depth for the minimax algorithm
-    Depth is 3,
+    % We set based on the board size, because the bigger the board, the more moves the computer has to calculate per depth
+    minimax_depth_by_board_size(BoardSize, Depth),
+
     % Initialize alpha and beta values
     Alpha is -1000000,
     Beta is 1000000,
@@ -320,36 +327,45 @@ max_value_loop(Board, Player, Depth, BoardSize, [Move|Rest], Alpha, Beta, Curren
         % Check if the game is over
         check_win(NewBoard, Player)
             -> (
-                BestEval is Depth, 
+                BestEval is Depth,
                 BestMove = Move
             )
             ; (
-                % Switch the player and decrease the depth, and calculate the best score for the other player
-                switch_player(Player, OtherPlayer),
-                NewDepth is Depth - 1,
-                min_value(NewBoard, OtherPlayer, NewDepth, BoardSize, Alpha, Beta, ChildEval, _, _),
+                (Depth = 0) -> (
+                    % If the depth is 0, calculate the heuristic value
+                    evaluate_board(NewBoard, Player, BoardSize, Eval),
+                    BestEval is Eval,
+                    BestMove = Move
+                )
+                ;
+                (
+                    % Switch the player and decrease the depth, and calculate the best score for the other player
+                    switch_player(Player, OtherPlayer),
+                    NewDepth is Depth - 1,
+                    min_value(NewBoard, OtherPlayer, NewDepth, BoardSize, Alpha, Beta, ChildEval, _, _),
 
-                % Update the maximum value
-                (
-                    ChildEval > CurrentBestEval
-                        -> (
-                            NewCurrentBestEval is ChildEval,
-                            NewCurrentBestMove = Move,
-                            NewAlpha is max(Alpha, ChildEval)
-                        )
-                        ; (
-                            NewCurrentBestEval is CurrentBestEval,
-                            NewCurrentBestMove = CurrentBestMove,
-                            NewAlpha is Alpha
-                        )
-                ),
-                (
-                    Beta =< NewAlpha % Prune
-                        -> (
-                            BestEval is NewCurrentBestEval, 
-                            BestMove = NewCurrentBestMove
-                        )
-                        ; max_value_loop(Board, Player, Depth, BoardSize, Rest, NewAlpha, Beta, NewCurrentBestEval, BestEval, NewCurrentBestMove, BestMove)
+                    % Update the maximum value
+                    (
+                        ChildEval > CurrentBestEval
+                            -> (
+                                NewCurrentBestEval is ChildEval,
+                                NewCurrentBestMove = Move,
+                                NewAlpha is max(Alpha, ChildEval)
+                            )
+                            ; (
+                                NewCurrentBestEval is CurrentBestEval,
+                                NewCurrentBestMove = CurrentBestMove,
+                                NewAlpha is Alpha
+                            )
+                    ),
+                    (
+                        Beta =< NewAlpha % Prune
+                            -> (
+                                BestEval is NewCurrentBestEval, 
+                                BestMove = NewCurrentBestMove
+                            )
+                            ; max_value_loop(Board, Player, Depth, BoardSize, Rest, NewAlpha, Beta, NewCurrentBestEval, BestEval, NewCurrentBestMove, BestMove)
+                    )
                 )
             )
     ).
@@ -382,32 +398,41 @@ min_value_loop(Board, Player, Depth, BoardSize, [Move|Rest], Alpha, Beta, Curren
                 BestMove = Move
             )
             ; (
-                % Switch the player and decrease the depth, and calculate the best score for the other player
-                switch_player(Player, OtherPlayer),
-                NewDepth is Depth - 1,
-                max_value(NewBoard, OtherPlayer, NewDepth, BoardSize, Alpha, Beta, ChildEval, _, _),
+                (Depth = 0) -> (
+                    % If the depth is 0, calculate the heuristic value
+                    evaluate_board(NewBoard, Player, BoardSize, Eval),
+                    BestEval is Eval,
+                    BestMove = Move
+                )
+                ;
+                (
+                    % Switch the player and decrease the depth, and calculate the best score for the other player
+                    switch_player(Player, OtherPlayer),
+                    NewDepth is Depth - 1,
+                    max_value(NewBoard, OtherPlayer, NewDepth, BoardSize, Alpha, Beta, ChildEval, _, _),
 
-                % Update the minimum value
-                (
-                    ChildEval < CurrentBestEval
-                        -> (
-                            NewCurrentBestEval is ChildEval,
-                            NewCurrentBestMove = Move,
-                            NewBeta is min(Beta, ChildEval)
-                        )
-                        ; (
-                            NewCurrentBestEval is CurrentBestEval,
-                            NewCurrentBestMove = CurrentBestMove,
-                            NewBeta is Beta
-                        )
-                ),
-                (
-                    NewBeta =< Alpha % Prune
-                        -> (
-                            BestEval is NewCurrentBestEval, 
-                            BestMove = NewCurrentBestMove
-                        )
-                        ; min_value_loop(Board, Player, Depth, BoardSize, Rest, Alpha, NewBeta, NewCurrentBestEval, BestEval, NewCurrentBestMove, BestMove)
+                    % Update the minimum value
+                    (
+                        ChildEval < CurrentBestEval
+                            -> (
+                                NewCurrentBestEval is ChildEval,
+                                NewCurrentBestMove = Move,
+                                NewBeta is min(Beta, ChildEval)
+                            )
+                            ; (
+                                NewCurrentBestEval is CurrentBestEval,
+                                NewCurrentBestMove = CurrentBestMove,
+                                NewBeta is Beta
+                            )
+                    ),
+                    (
+                        NewBeta =< Alpha % Prune
+                            -> (
+                                BestEval is NewCurrentBestEval, 
+                                BestMove = NewCurrentBestMove
+                            )
+                            ; min_value_loop(Board, Player, Depth, BoardSize, Rest, Alpha, NewBeta, NewCurrentBestEval, BestEval, NewCurrentBestMove, BestMove)
+                    )
                 )
             )
     ).
@@ -419,6 +444,23 @@ get_all_possible_moves(Board, BoardSize, Moves):-
         between(1, BoardSize, Column),
         get_cell(Board, Row, Column, 0)
     ), Moves).
+
+% Evaluates the heuristic value of the board for the player, for now it's 0 (reached final depth)
+evaluate_board(_, _, _, Eval):-
+    Eval is 0.
+
+% Sets depth based on the board size. The bigger the board, the more moves the computer has to calculate per depth level.
+minimax_depth_by_board_size(BoardSize, Depth):-
+    (BoardSize, Depth) = (2, 10);
+    (BoardSize, Depth) = (3, 10);
+    (BoardSize, Depth) = (4, 5);
+    (BoardSize, Depth) = (5, 4);
+    (BoardSize, Depth) = (6, 3);
+    (BoardSize, Depth) = (7, 3);
+    (BoardSize, Depth) = (8, 3);
+    (BoardSize, Depth) = (9, 3);
+    (BoardSize, Depth) = (10, 3);
+    (BoardSize, Depth) = (11, 3).
 
 % ===========================================================================
 % ===========================================================================
