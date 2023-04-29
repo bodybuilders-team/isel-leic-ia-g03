@@ -1,11 +1,11 @@
 # isel-leic-ia-g03
 
-> Artificial Intelligence project of group 0? from LEIC61D class.
+> Artificial Intelligence project of group 03 from LEIC61D class.
 
 ## Assignments
 
-1. [Assignment 1](assignment1/README.md) - Hex Game in Prolog
-2. *(More to come)*
+1. [1st Project](1st-project/README.md) - Hex Game in Prolog
+2. [2nd Project](2nd-project/README.md) - Sudoku Solvers (Prolog and Matlab)
 
 ## Authors
 
@@ -16,5 +16,5 @@ Professor: Eng. Nuno Leite
 
 @ISEL<br>
 Bachelor in Computer Science and Computer Engineering<br>
-Artificial Intelligence - LEIC61D - Group 0?<br>
+Artificial Intelligence - LEIC61D - Group 03<br>
 Summer Semester of 2022/2023
