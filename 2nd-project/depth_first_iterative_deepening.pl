@@ -1,6 +1,6 @@
-depth_first_iterative_deepening( Node, Solution) :-
-	path( Node, GoalNode, Solution),
-	goal( GoalNode).
+depth_first_iterative_deepening(Node, Solution, Depth) :-
+	path(Node, GoalNode, Solution, Depth),
+	goal(GoalNode).
 
 s(a, b).
 s(a, c).
@@ -16,9 +16,11 @@ s(f, k).
 goal(j).
 goal(f).
 
-path(Node, Node, [Node]). % Single node path
+path(Node, Node, [Node], _). % Single node path
 
-path(FirstNode, LastNode, [LastNode | Path]) :-
-	path(FirstNode, OneButLast, Path), % Path up to one-but-last node
+path(FirstNode, LastNode, [LastNode | Path], Depth) :-
+	Depth > 0,
+	NewDepth is Depth - 1,
+	path(FirstNode, OneButLast, Path, NewDepth), % Path up to one-but-last node
 	s(OneButLast, LastNode),           % Last step
 	\+ member(LastNode, Path).         % No cycle
