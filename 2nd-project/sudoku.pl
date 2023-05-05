@@ -18,6 +18,9 @@
 %:- consult('depth_first_iterative_deepening.pl').
 % :- consult('bestfirst.pl').
 :- use_module(library(clpfd)).
+:- consult('iddfs_sudoku.pl').
+% :- consult('bestfirst_sudoku.pl').
+:- consult('goal.pl').
 
 % Runs the solver
 sudoku :-
@@ -117,132 +120,8 @@ print_row([H|T], N) :-
 
 % Solves the puzzle
 solve(Puzzle, Solution) :-
-    depth_first_iterative_deepening(Puzzle, [Solution | _], 1000). % TODO: sus depth
+    depth_first_iterative_deepening(Puzzle, [Solution | _], 1000). % TODO: sus depth (use number of missing cells?)
     % bestfirst(Puzzle, Solution).
-
-depth_first_iterative_deepening(Node, Solution, Depth) :-
-	path(Node, GoalNode, Solution, Depth),
-	goal(GoalNode).
-
-path(Node, Node, [Node], _). % Single node path
-
-path(FirstNode, LastNode, [LastNode | Path], Depth) :-
-	Depth > 0,
-	NewDepth is Depth - 1,
-	path(FirstNode, OneButLast, Path, NewDepth), % Path up to one-but-last node
-	s(OneButLast, LastNode),           % Last step
-	\+ member(LastNode, Path).         % No cycle
-
-% goal1 Checks if the puzzle is solved
-goal(Puzzle) :-
-    rows_valid(Puzzle),
-    columns_valid(Puzzle),
-    subgrids_valid(Puzzle).
-
-%goal(Puzzle) :-
-%        length(Puzzle, 9), maplist(same_length(Puzzle), Puzzle),
-%        append(Puzzle, Vs), Vs ins 1..9,
-%        maplist(all_distinct, Puzzle),
-%        transpose(Puzzle, Columns),
-%        maplist(all_distinct, Columns),
-%        Puzzle = [As,Bs,Cs,Ds,Es,Fs,Gs,Hs,Is],
-%        blocks(As, Bs, Cs), blocks(Ds, Es, Fs), blocks(Gs, Hs, Is).
-
-%blocks([], [], []).
-%blocks([N1,N2,N3|Ns1], [N4,N5,N6|Ns2], [N7,N8,N9|Ns3]) :-
-%        all_distinct([N1,N2,N3,N4,N5,N6,N7,N8,N9]),
-%        blocks(Ns1, Ns2, Ns3).
-
-rows_valid([]).
-rows_valid([Row|Rows]) :-
-    sort(Row, Sorted),
-    permutation(Sorted, [1,2,3,4,5,6,7,8,9]),
-    rows_valid(Rows).
-
-columns_valid(Puzzle) :-
-    transpose(Puzzle, Transposed),
-    rows_valid(Transposed).
-
-subgrids_valid(Puzzle) :-
-    subgrid_valid(0, 0, Puzzle),
-    subgrid_valid(0, 3, Puzzle),
-    subgrid_valid(0, 6, Puzzle),
-    subgrid_valid(3, 0, Puzzle),
-    subgrid_valid(3, 3, Puzzle),
-    subgrid_valid(3, 6, Puzzle),
-    subgrid_valid(6, 0, Puzzle),
-    subgrid_valid(6, 3, Puzzle),
-    subgrid_valid(6, 6, Puzzle).
-
-subgrid_valid(RowIdx, ColumnIdx, Puzzle) :-
-    RowIdx1 is RowIdx + 1,
-    RowIdx2 is RowIdx + 2,
-    ColumnIdx1 is ColumnIdx + 1,
-    ColumnIdx2 is ColumnIdx + 2,
-    nth0(RowIdx, Puzzle, Row0),
-    nth0(RowIdx1, Puzzle, Row1),
-    nth0(RowIdx2, Puzzle, Row2),
-    nth0(ColumnIdx, Row0, E00),
-    nth0(ColumnIdx1, Row0, E01),
-    nth0(ColumnIdx2, Row0, E02),
-    nth0(ColumnIdx, Row1, E10),
-    nth0(ColumnIdx1, Row1, E11),
-    nth0(ColumnIdx2, Row1, E12),
-    nth0(ColumnIdx, Row2, E20),
-    nth0(ColumnIdx1, Row2, E21),
-    nth0(ColumnIdx2, Row2, E22),
-    sort([E00, E01, E02, E10, E11, E12, E20, E21, E22], Sorted),
-    permutation(Sorted, [1,2,3,4,5,6,7,8,9]).
 
 % example of puzzle solution
 /*goal([[4,3,5,2,6,9,7,8,1],[6,8,2,5,7,1,4,9,3],[1,9,7,8,3,4,5,6,2],[8,2,6,1,9,5,3,4,7],[3,7,4,6,8,2,9,1,5],[9,5,1,7,4,3,6,2,8],[5,1,9,3,2,6,8,7,4],[2,4,8,9,5,7,1,3,6],[7,6,3,4,1,8,2,5,9]]).*/
-
-% s2 Represents a move in the sudoku puzzle
-s(Puzzle, NewPuzzle) :-
-    find_empty(Puzzle, RowIdx, ColumnIdx),
-    %between(1, 9, Value),
-    find_possible_values(Puzzle, RowIdx, ColumnIdx, PossibleValues),
-    member(Value, PossibleValues),
-    set_value(Puzzle, RowIdx, ColumnIdx, Value, NewPuzzle).
-
-% find_empty Finds the first empty cell in the puzzle
-find_empty(Puzzle, RowIdx, ColumnIdx) :-
-    nth0(RowIdx, Puzzle, RowList),
-    nth0(ColumnIdx, RowList, '_').
-
-% find_possible_values Finds the possible values for a cell in the puzzle
-find_possible_values(Puzzle, RowIdx, ColumnIdx, PossibleValues) :-
-    findall(Value, (
-        between(1, 9, Value),
-        set_value(Puzzle, RowIdx, ColumnIdx, Value, NewPuzzle),
-        valid_unfilled(NewPuzzle)
-    ), PossibleValues).
-
-% set_value Sets the value of a cell in the puzzle
-set_value(Puzzle, RowIdx, ColumnIdx, Value, NewPuzzle) :-
-    nth0(RowIdx, Puzzle, RowList, Rest),
-    nth0(ColumnIdx, RowList, _, Transfer),
-    % Backwards
-    nth0(ColumnIdx, NewRowList, Value, Transfer),
-    nth0(RowIdx, NewPuzzle, NewRowList, Rest).
-
-% valid_unfilled Checks if the puzzle is valid with unfilled cells
-valid_unfilled(Puzzle) :-
-    length(Puzzle, 9),
-    maplist(same_length(Puzzle), Puzzle),
-    maplist(legal_row_column, Puzzle),
-    transpose(Puzzle, Columns),
-    maplist(legal_row_column, Columns),
-    Puzzle = [As,Bs,Cs,Ds,Es,Fs,Gs,Hs,Is],
-    legal_squares(As, Bs, Cs),
-    legal_squares(Ds, Es, Fs),
-    legal_squares(Gs, Hs, Is).
-
-legal_row_column(List) :- 
-    include(number, List, Remaining),
-    all_distinct(Remaining).
-
-legal_squares([], [], []).
-legal_squares([N1,N2,N3|Ns1], [N4,N5,N6|Ns2], [N7,N8,N9|Ns3]) :-
-    legal_row_column([N1,N2,N3,N4,N5,N6,N7,N8,N9]),
-    legal_squares(Ns1, Ns2, Ns3).
