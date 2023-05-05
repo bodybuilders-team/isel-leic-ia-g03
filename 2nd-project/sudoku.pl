@@ -16,7 +16,7 @@
 % ====================================================
 
 %:- consult('depth_first_iterative_deepening.pl').
-:- consult('bestfirst.pl').
+% :- consult('bestfirst.pl').
 :- use_module(library(clpfd)).
 
 % Runs the solver
@@ -107,7 +107,7 @@ print_puzzle_r([H|T], N) :-
 % Prints a row of the puzzle
 print_row([], _).
 print_row([H|T], N) :-
-    (nonvar(H) -> write(H); write(' ')),
+    (H = '_' -> write(' '); write(H)),
     ((N == 3; N == 6) 
         -> write(' | ')
         ;  write(' ')
@@ -150,8 +150,8 @@ goal(Puzzle) :-
 
 %blocks([], [], []).
 %blocks([N1,N2,N3|Ns1], [N4,N5,N6|Ns2], [N7,N8,N9|Ns3]) :-
- %       all_distinct([N1,N2,N3,N4,N5,N6,N7,N8,N9]),
-  %      blocks(Ns1, Ns2, Ns3).
+%        all_distinct([N1,N2,N3,N4,N5,N6,N7,N8,N9]),
+%        blocks(Ns1, Ns2, Ns3).
 
 rows_valid([]).
 rows_valid([Row|Rows]) :-
