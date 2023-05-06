@@ -18,7 +18,8 @@
 %:- consult('depth_first_iterative_deepening.pl').
 % :- consult('bestfirst.pl').
 :- use_module(library(clpfd)).
-:- consult('iddfs_sudoku.pl').
+%:- consult('iddfs_sudoku.pl').
+:- consult('dfs.pl').
 % :- consult('bestfirst_sudoku.pl').
 :- consult('goal.pl').
 
@@ -29,8 +30,9 @@ sudoku :-
     puzzle(Difficulty, Puzzle),
     writeln('Puzzle:'),
     print_puzzle(Puzzle),
+    puzzle_algorithm(Algorithm),
     writeln('Solving...'),
-    solve(Puzzle, Solution),
+    solve(Puzzle, Algorithm, Solution),
     writeln('Solution:'),
     print_puzzle(Solution).
 
@@ -44,6 +46,17 @@ puzzle_difficulty(Difficulty) :-
     write('Choose the difficulty of the puzzle [0-3]: '),
     read(Difficulty),
     between(0, 3, Difficulty).
+
+% Asks the user for the algorithm to solve the puzzle
+puzzle_algorithm(Algorithm) :-
+    writeln('Difficulties:'),
+    writeln('0 - Iterative Deepening Depth-First Search (IDDFS)'),
+    writeln('1 - Best-First Search (A*)'),
+    writeln('2 - Simulated Annealing'),
+    writeln('3 - Genetic Algorithm'),
+    write('Choose the algorithm to solve the puzzle [0-3]: '),
+    read(Algorithm),
+    between(0, 3, Algorithm).
 
 % Returns puzzles with different difficulty levels
 % puzzle(0, Puzzle) - Easy
@@ -119,9 +132,12 @@ print_row([H|T], N) :-
     print_row(T, N1).
 
 % Solves the puzzle
-solve(Puzzle, Solution) :-
+solve(Puzzle, 0, Solution) :-
     depth_first_iterative_deepening(Puzzle, [Solution | _], 1000). % TODO: sus depth (use number of missing cells?)
-    % bestfirst(Puzzle, Solution).
+    %dfs(Puzzle, [Solution, _]).
+
+%solve(Puzzle, 1, Solution) :-
+%    bestfirst(Puzzle, Solution).
 
 % example of puzzle solution
 /*goal([[4,3,5,2,6,9,7,8,1],[6,8,2,5,7,1,4,9,3],[1,9,7,8,3,4,5,6,2],[8,2,6,1,9,5,3,4,7],[3,7,4,6,8,2,9,1,5],[9,5,1,7,4,3,6,2,8],[5,1,9,3,2,6,8,7,4],[2,4,8,9,5,7,1,3,6],[7,6,3,4,1,8,2,5,9]]).*/

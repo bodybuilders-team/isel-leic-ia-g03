@@ -1,15 +1,23 @@
-depth_first_iterative_deepening(Node, Solution, Depth) :-
-	path(Node, GoalNode, Solution, Depth),
-	goal(GoalNode).
+%
+%
+%
+%
+% NOT WORKING
+%
+%
+%
+%
 
-path(Node, Node, [Node], _). % Single node path
+% dfs(Node, Solution) :- Solution is a path from Node to a goal node
+dfs(Node, [Node]) :- goal(Node).
+dfs(Node, [Node | Path]) :-
+    s(Node, NextNode), % NextNode is a successor of Node
+    \+ member(NextNode, [Node]), % NextNode is not already visited
+    dfs(NextNode, Path). % Find a path from NextNode to a goal node
 
-path(FirstNode, LastNode, [LastNode | Path], Depth) :-
-	Depth > 0,
-	NewDepth is Depth - 1,
-	path(FirstNode, OneButLast, Path, NewDepth), % Path up to one-but-last node
-	s(OneButLast, LastNode),           % Last step
-	\+ member(LastNode, Path).         % No cycle
+
+
+
 
 
 % s/2 Represents a move in the sudoku puzzle
