@@ -6,7 +6,8 @@ s(Puzzle, NewPuzzle, Cost) :- % TODO: apply Cost
     %between(1, 9, Value),
     find_possible_values(Puzzle, RowIdx, ColumnIdx, PossibleValues),
     member(Value, PossibleValues),
-    set_value(Puzzle, RowIdx, ColumnIdx, Value, NewPuzzle).
+    set_value(Puzzle, RowIdx, ColumnIdx, Value, NewPuzzle),
+    Cost = 1.
 
 % find_empty Finds the first empty cell in the puzzle
 find_empty(Puzzle, RowIdx, ColumnIdx) :-

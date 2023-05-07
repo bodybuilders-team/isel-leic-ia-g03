@@ -19,8 +19,8 @@
 % :- consult('bestfirst.pl').
 :- use_module(library(clpfd)).
 %:- consult('iddfs_sudoku.pl').
-:- consult('dfs.pl').
-% :- consult('bestfirst_sudoku.pl').
+%:- consult('dfs.pl').
+:- consult('bestfirst_sudoku.pl').
 :- consult('goal.pl').
 
 % Runs the solver
@@ -133,7 +133,8 @@ print_row([H|T], N) :-
 
 % Solves the puzzle
 solve(Puzzle, 0, Solution) :-
-    depth_first_iterative_deepening(Puzzle, [Solution | _], 1000). % TODO: sus depth (use number of missing cells?)
+    %depth_first_iterative_deepening(Puzzle, [Solution | _], 1000). % TODO: sus depth (use number of missing cells?)
+    bestfirst(Puzzle, [Solution, _]).
     %dfs(Puzzle, [Solution, _]).
 
 %solve(Puzzle, 1, Solution) :-
