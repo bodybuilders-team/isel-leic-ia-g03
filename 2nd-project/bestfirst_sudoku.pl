@@ -1,5 +1,14 @@
 :- consult('bestfirst.pl').
 
+% MRV Heuristic -> find the cell with the least possible values
+h(Puzzle, H) :-
+    findall(PossibleValues, (
+        find_empty(Puzzle, RowIdx, ColumnIdx),
+        find_possible_values(Puzzle, RowIdx, ColumnIdx, PossibleValues)
+    ), PossibleValuesList),
+    maplist(length, PossibleValuesList, PossibleValuesLengths),
+    min_list(PossibleValuesLengths, H).
+
 % s/2 Represents a move in the sudoku puzzle
 s(Puzzle, NewPuzzle, Cost) :- % TODO: apply Cost
     find_empty(Puzzle, RowIdx, ColumnIdx),
