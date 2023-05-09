@@ -2,7 +2,7 @@
 % See: https://en.wikipedia.org/wiki/Hex_(board_game)
 % ====================================================
 % @ISEL, 2022-2023 Summer Semester
-% BsC in Computer Science and Engineering
+% BSc in Computer Science and Engineering
 % Artificial Intelligence
 % ====================================================
 % Authors:

@@ -1,8 +1,8 @@
-% ================ Sudoku Solver in Prolog ================
+% ============= Sudoku Solver in Prolog ==============
 % See: https://en.wikipedia.org/wiki/Sudoku
 % ====================================================
 % @ISEL, 2022-2023 Summer Semester
-% BsC in Computer Science and Engineering
+% BSc in Computer Science and Engineering
 % Artificial Intelligence
 % ====================================================
 % Authors:
@@ -15,12 +15,13 @@
 % ?- sudoku.
 % ====================================================
 
+:- consult('utils.pl').
 :- consult('goal.pl').
 :- consult('iterative_deepening/iddfs_sudoku.pl').
 :- consult('bestfirst/bestfirst_sudoku.pl').
 :- use_module(library(clpfd)).
 
-% Runs the solver
+% Runs the sudoku solver
 sudoku :-
     writeln('Welcome to the Sudoku Solver in Prolog!'),
     puzzle_difficulty(Difficulty),
@@ -98,6 +99,10 @@ puzzle(3, [ [_,_,_,_,_,_,_,_,_],
             [_,_,2,_,1,_,_,_,_],
             [_,_,_,_,4,_,_,_,9] ]). 
 
+% ==============================================
+% =============== Print Puzzle =================
+% ==============================================
+
 % Prints the puzzle
 print_puzzle([]).
 print_puzzle([H|T]) :-
@@ -126,9 +131,14 @@ print_row([H|T], N) :-
     N1 is N + 1,
     print_row(T, N1).
 
-% Solves the puzzle
+% ==============================================
+% =============== Solve Puzzle =================
+% ==============================================
+
+% Solves the puzzle using iterative deepening depth-first search (IDDFS)
 solve(Puzzle, 0, Solution) :-
     depth_first_iterative_deepening(Puzzle, [Solution | _], 1000). % TODO: sus depth (use number of missing cells?)
 
+% Solves the puzzle using best-first search (A*)
 solve(Puzzle, 1, Solution) :-
-    bestfirst(Puzzle, Solution).
+    bestfirst(Puzzle, [Solution | _]).
