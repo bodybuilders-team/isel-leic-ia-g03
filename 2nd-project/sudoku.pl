@@ -11,7 +11,7 @@
 % Professor:
 %   - Nuno Leite
 % ====================================================
-% To run the solver, use this query: 
+% To run the application, use this query: 
 % ?- sudoku.
 % ====================================================
 

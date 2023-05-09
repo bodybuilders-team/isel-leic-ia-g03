@@ -11,17 +11,43 @@
 % Professor:
 %   - Nuno Leite
 % ====================================================
-% To run the solver, run the "sudoku" function
+% To run the application, run the "sudoku" function
 % ====================================================
 
-function sa_sudoku()
+function sudoku()
     disp('Welcome to the Sudoku Solver in MATLAB!');
     
+    disp('Difficulties:')
+    disp('0 - Easy');
+    disp('1 - Medium');
+    disp('2 - Hard');
+    disp('3 - Very Hard');
     difficulty = input('Choose the difficulty of the puzzle [0-3]: ');
     while ~(difficulty >= 0 && difficulty <= 3)
         difficulty = input('Invalid input! Please choose a difficulty between 0 and 3: ');
     end
-    
+
+    puzzle = getPuzzle(difficulty);
+
+    disp('Puzzle:');
+    printPuzzle(puzzle);
+
+    disp('Algorithms:')
+    disp('0 - Simulated Annealing');
+    disp('1 - Genetic Algorithm');
+    algorithm = input('Choose the algorithm to solve the puzzle [0-1]: ');
+    while ~(algorithm >= 0 && algorithm <= 1)
+        algorithm = input('Invalid input! Please choose an algorithm between 0 and 1: ');
+    end
+
+    disp('Solving...');
+    solution = solve(puzzle, algorithm);
+
+    disp('Solution:');
+    printPuzzle(solution);
+end
+
+function puzzle = getPuzzle(difficulty)
     puzzles = {
         [nan,nan,5,2,6,9,7,8,1;
          6,8,2,5,7,1,4,9,3;
@@ -65,15 +91,6 @@ function sa_sudoku()
     };
 
     puzzle = puzzles{difficulty+1};
-
-    disp('Puzzle:');
-    printPuzzle(puzzle);
-
-    disp('Solving...');
-    solution = solve(puzzle);
-
-    disp('Solution:');
-    printPuzzle(solution);
 end
 
 function printPuzzle(puzzle)
@@ -99,7 +116,7 @@ function printPuzzle(puzzle)
     disp(' ');
 end
 
-function solution = solve(puzzle)
+function solution = solve(puzzle, algorithm)
     % Implement the puzzle solving algorithm here
     % You can use different algorithms based on the "algorithm" input
     % Placeholder code: return the original puzzle as the solution
