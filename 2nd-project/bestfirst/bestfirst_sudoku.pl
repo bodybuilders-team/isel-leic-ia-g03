@@ -38,24 +38,3 @@ set_value(Puzzle, RowIdx, ColumnIdx, Value, NewPuzzle) :-
     % Backwards
     nth0(ColumnIdx, NewRowList, Value, Transfer),
     nth0(RowIdx, NewPuzzle, NewRowList, Rest).
-
-% valid_unfilled Checks if the puzzle is valid with unfilled cells
-valid_unfilled(Puzzle) :-
-    length(Puzzle, 9),
-    maplist(same_length(Puzzle), Puzzle),
-    maplist(legal_row_column, Puzzle),
-    transpose(Puzzle, Columns),
-    maplist(legal_row_column, Columns),
-    Puzzle = [As,Bs,Cs,Ds,Es,Fs,Gs,Hs,Is],
-    legal_squares(As, Bs, Cs),
-    legal_squares(Ds, Es, Fs),
-    legal_squares(Gs, Hs, Is).
-
-legal_row_column(List) :- 
-    include(number, List, Remaining),
-    all_distinct(Remaining).
-
-legal_squares([], [], []).
-legal_squares([N1,N2,N3|Ns1], [N4,N5,N6|Ns2], [N7,N8,N9|Ns3]) :-
-    legal_row_column([N1,N2,N3,N4,N5,N6,N7,N8,N9]),
-    legal_squares(Ns1, Ns2, Ns3).

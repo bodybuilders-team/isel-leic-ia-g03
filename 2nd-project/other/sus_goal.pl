@@ -1,3 +1,5 @@
+:- use_module(library(clpfd)).
+
 goal(Puzzle) :-
     length(Puzzle, 9), maplist(same_length(Puzzle), Puzzle),
     append(Puzzle, Vs), Vs ins 1..9,
