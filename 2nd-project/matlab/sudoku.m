@@ -14,6 +14,10 @@
 % To run the application, run the "sudoku" function
 % ====================================================
 
+import SA from simulated_annealing/sa.m
+import GA from genetic_algorithm/ga.m
+
+
 function sudoku()
     disp('Welcome to the Sudoku Solver in MATLAB!');
     
@@ -117,8 +121,9 @@ function printPuzzle(puzzle)
 end
 
 function solution = solve(puzzle, algorithm)
-    % Implement the puzzle solving algorithm here
-    % You can use different algorithms based on the "algorithm" input
-    % Placeholder code: return the original puzzle as the solution
-    solution = puzzle;
+    if algorithm == 0
+        solution = SA(puzzle);
+    else
+        solution = GA(puzzle);
+    end
 end

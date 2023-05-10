@@ -1,5 +1,5 @@
 % Finds the first empty cell in the puzzle
-find_empty(Puzzle, RowIdx, ColumnIdx) :-
+find_empty(Puzzle, RowIdx, ColumnIdx) :- % Make RANDOM
     nth0(RowIdx, Puzzle, RowList),
     nth0(ColumnIdx, RowList, '_').
 

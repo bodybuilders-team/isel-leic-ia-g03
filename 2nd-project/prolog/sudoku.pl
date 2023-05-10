@@ -58,18 +58,20 @@ puzzle_algorithm(Algorithm) :-
 % puzzle(0, Puzzle) - Easy
 % puzzle(1, Puzzle) - Medium
 % puzzle(2, Puzzle) - Hard
-% puzzle(3, Puzzle) - Very Hard
-puzzle(0, [ [_,_,5,2,6,9,7,8,1],
-            [6,8,2,5,7,1,4,9,3],
-            [1,_,7,8,3,4,5,6,2],
-            [8,2,6,1,_,5,3,_,7],
-            [3,7,4,6,8,2,9,1,5],
-            [9,5,1,7,4,3,6,2,8],
-            [5,1,9,_,2,6,8,7,4],
-            [2,4,8,9,5,7,1,3,6],
-            [7,6,3,4,1,8,2,5,_] ]).
+% puzzle(3, Puzzle) - Expert
+% puzzle(4, Puzzle) - Nightmare
+% puzzle(5, Puzzle) - Impossible
+puzzle(0, [ [_,_,_,9,_,_,5,1,7],
+            [_,_,5,_,2,_,_,_,_],
+            [_,9,_,5,_,_,8,2,4],
+            [3,7,_,_,9,2,1,4,_],
+            [4,_,9,_,1,_,6,7,3],
+            [_,_,1,_,3,_,_,_,8],
+            [6,_,3,_,8,_,4,_,9],
+            [_,_,_,_,6,_,_,_,1],
+            [_,8,4,_,_,1,7,6,_] ]).
 
-puzzle(1, [ [5,_,_,6,_,1,_,_,_],
+puzzle(1, [ [1,9s,_,6,_,1,_,_,_],
             [_,3,_,_,7,5,_,4,9],
             [_,_,_,9,4,8,_,_,_],
             [1,5,7,_,_,_,_,_,_],
@@ -137,7 +139,7 @@ print_row([H|T], N) :-
 
 % Solves the puzzle using iterative deepening depth-first search (IDDFS)
 solve(Puzzle, 0, Solution) :-
-    depth_first_iterative_deepening(Puzzle, [Solution | _], 1000). % TODO: sus depth (use number of missing cells?)
+    depth_first_iterative_deepening(Puzzle, [Solution | _]).
 
 % Solves the puzzle using best-first search (A*)
 solve(Puzzle, 1, Solution) :-
