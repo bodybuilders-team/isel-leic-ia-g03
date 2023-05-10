@@ -25,10 +25,12 @@ function sudoku()
     disp('0 - Easy');
     disp('1 - Medium');
     disp('2 - Hard');
-    disp('3 - Very Hard');
-    difficulty = input('Choose the difficulty of the puzzle [0-3]: ');
-    while ~(difficulty >= 0 && difficulty <= 3)
-        difficulty = input('Invalid input! Please choose a difficulty between 0 and 3: ');
+    disp('3 - Expert');
+    disp('4 - Nightmare');
+    disp('5 - Impossible')
+    difficulty = input('Choose the difficulty of the puzzle [0-5]: ');
+    while ~(difficulty >= 0 && difficulty <= 5)
+        difficulty = input('Invalid input! Please choose a difficulty between 0 and 5: ');
     end
 
     puzzle = getPuzzle(difficulty);
@@ -53,36 +55,62 @@ end
 
 function puzzle = getPuzzle(difficulty)
     puzzles = {
-        [nan,nan,5,2,6,9,7,8,1;
-         6,8,2,5,7,1,4,9,3;
-         1,nan,7,8,3,4,5,6,2;
-         8,2,6,1,nan,5,3,nan,7;
-         3,7,4,6,8,2,9,1,5;
-         9,5,1,7,4,3,6,2,8;
-         5,1,9,nan,2,6,8,7,4;
-         2,4,8,9,5,7,1,3,6;
-         7,6,3,4,1,8,2,5,nan]
+        % Easy
+        [nan,nan,nan,9,nan,nan,5,1,7;
+        nan,nan,5,nan,2,nan,nan,nan,nan;
+        nan,9,nan,5,nan,nan,8,2,4;
+        3,7,nan,nan,9,2,1,4,nan;
+        4,nan,9,nan,1,nan,6,7,3;
+        nan,nan,1,nan,3,nan,nan,nan,8;
+        6,nan,3,nan,8,nan,4,nan,9;
+        nan,nan,nan,nan,6,nan,nan,nan,1;
+        nan,8,4,nan,nan,1,7,6,nan]
 
-        [5,nan,nan,6,nan,1,nan,nan,nan;
-        nan,3,nan,nan,7,5,nan,4,9;
-        nan,nan,nan,9,4,8,nan,nan,nan;
-        1,5,7,nan,nan,nan,nan,nan,nan;
-        nan,9,6,nan,nan,nan,2,nan,8;
-        2,nan,nan,1,6,9,nan,5,nan;
-        4,1,nan,3,nan,7,nan,6,nan;
-        nan,2,nan,5,1,nan,3,7,nan;
-        7,nan,3,4,nan,nan,1,8,nan]
+        % Medium
+        [1,9,nan,8,4,nan,nan,nan,nan;
+        nan,8,4,nan,nan,nan,6,9,nan;
+        nan,nan,nan,nan,5,9,nan,4,nan;
+        7,nan,2,9,nan,4,nan,3,nan;
+        6,4,nan,nan,7,nan,5,nan,nan;
+        nan,1,nan,nan,nan,nan,nan,7,nan;
+        3,7,5,4,6,8,nan,nan,nan;
+        nan,nan,nan,5,nan,nan,7,nan,3;
+        nan,nan,nan,7,nan,nan,nan,nan,nan]
     
-        [nan,nan,nan,6,nan,nan,4,nan,nan;
-        7,nan,nan,nan,nan,3,6,nan,nan;
-        nan,nan,nan,nan,9,1,nan,8,nan;
+        % Hard
+        [9,nan,2,nan,7,nan,3,nan,nan;
+        nan,nan,nan,nan,nan,8,2,nan,nan;
+        nan,nan,6,nan,nan,5,9,nan,nan;
         nan,nan,nan,nan,nan,nan,nan,nan,nan;
-        nan,5,nan,1,8,nan,nan,nan,3;
-        nan,nan,nan,3,nan,6,nan,4,5;
-        nan,4,nan,2,nan,nan,nan,6,nan;
-        9,nan,3,nan,nan,nan,nan,nan,nan;
-        nan,2,nan,nan,nan,nan,1,nan,nan]
+        nan,nan,9,nan,nan,7,nan,nan,5;
+        nan,nan,1,3,nan,nan,6,nan,nan;
+        8,2,nan,nan,nan,nan,nan,nan,nan;
+        nan,nan,7,nan,nan,1,nan,nan,4;
+        nan,1,nan,nan,8,nan,nan,nan,6]
         
+        % Expert
+        [9,6,nan,4,nan,5,nan,nan,nan;
+        nan,nan,nan,nan,nan,nan,4,nan,nan;
+        3,7,nan,nan,nan,nan,nan,nan,6;
+        nan,3,1,6,nan,nan,nan,nan,nan;
+        nan,nan,nan,8,3,nan,nan,nan,nan;
+        nan,nan,nan,nan,4,nan,nan,nan,1;
+        nan,nan,3,2,nan,nan,nan,nan,nan;
+        4,nan,nan,nan,nan,nan,8,nan,nan;
+        nan,1,8,nan,nan,6,7,5,nan]
+
+        % Nightmare
+        [nan,nan,nan,nan,nan,8,3,2,nan;
+        nan,6,nan,nan,nan,nan,nan,nan,nan;
+        3,4,nan,2,nan,nan,5,nan,nan;
+        nan,nan,6,3,nan,nan,nan,nan,nan;
+        1,3,nan,nan,nan,9,nan,nan,4;
+        nan,nan,8,nan,nan,nan,1,nan,nan;
+        nan,nan,nan,nan,7,nan,nan,nan,9;
+        nan,nan,1,nan,nan,nan,nan,nan,nan;
+        5,2,nan,8,nan,nan,4,nan,nan]
+
+        % Impossible
         [nan,nan,nan,nan,nan,nan,nan,nan,nan;
         nan,nan,nan,nan,nan,3,nan,8,5;
         nan,nan,1,nan,2,nan,nan,nan,nan;

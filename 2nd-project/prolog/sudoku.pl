@@ -15,6 +15,7 @@
 % ?- sudoku.
 % ====================================================
 
+:- consult('puzzle.pl').
 :- consult('utils.pl').
 :- consult('goal.pl').
 :- consult('iterative_deepening/iddfs_sudoku.pl').
@@ -40,10 +41,12 @@ puzzle_difficulty(Difficulty) :-
     writeln('0 - Easy'),
     writeln('1 - Medium'),
     writeln('2 - Hard'),
-    writeln('3 - Very Hard'),
-    write('Choose the difficulty of the puzzle [0-3]: '),
+    writeln('3 - Expert'),
+    writeln('4 - Nightmare'),
+    writeln('5 - Impossible'),
+    write('Choose the difficulty of the puzzle [0-5]: '),
     read(Difficulty),
-    between(0, 3, Difficulty).
+    between(0, 5, Difficulty).
 
 % Asks the user for the algorithm to solve the puzzle
 puzzle_algorithm(Algorithm) :-
@@ -53,63 +56,6 @@ puzzle_algorithm(Algorithm) :-
     write('Choose the algorithm to solve the puzzle [0-1]: '),
     read(Algorithm),
     between(0, 1, Algorithm).
-
-% Returns puzzles with different difficulty levels
-% puzzle(0, Puzzle) - Easy
-% puzzle(1, Puzzle) - Medium
-% puzzle(2, Puzzle) - Hard
-% puzzle(3, Puzzle) - Expert
-% puzzle(4, Puzzle) - Nightmare
-% puzzle(5, Puzzle) - Impossible
-puzzle(0, [ [_,_,_,9,_,_,5,1,7],
-            [_,_,5,_,2,_,_,_,_],
-            [_,9,_,5,_,_,8,2,4],
-            [3,7,_,_,9,2,1,4,_],
-            [4,_,9,_,1,_,6,7,3],
-            [_,_,1,_,3,_,_,_,8],
-            [6,_,3,_,8,_,4,_,9],
-            [_,_,_,_,6,_,_,_,1],
-            [_,8,4,_,_,1,7,6,_] ]).
-
-puzzle(1, [ [1,9s,_,6,_,1,_,_,_],
-            [_,3,_,_,7,5,_,4,9],
-            [_,_,_,9,4,8,_,_,_],
-            [1,5,7,_,_,_,_,_,_],
-            [_,9,6,_,_,_,2,_,8],
-            [2,_,_,1,6,9,_,5,_],
-            [4,1,_,3,_,7,_,6,_],
-            [_,2,_,5,1,_,3,7,_],
-            [7,_,3,4,_,_,1,8,_] ]).
-
-puzzle(2, [ [9,_,2,_,7,_,3,_,_],
-            [_,_,_,_,_,8,2,_,_],
-            [_,_,6,_,_,5,9,_,_],
-            [_,_,_,_,_,_,_,_,_],
-            [_,_,9,_,_,7,_,_,5],
-            [_,_,1,3,_,_,6,_,_],
-            [8,2,_,_,_,_,_,_,_],
-            [_,_,7,_,_,1,_,_,4],
-            [_,1,_,_,8,_,_,_,6] ]).
-
-puzzle(3, [ [_,_,_,_,_,_,_,_,_],
-            [_,_,_,_,_,3,_,8,5],
-            [_,_,1,_,2,_,_,_,_],
-            [_,_,_,5,_,7,_,_,_],
-            [_,_,4,_,_,_,1,_,_],
-            [_,9,_,_,_,_,_,_,_],
-            [5,_,_,_,_,_,_,7,3],
-            [_,_,2,_,1,_,_,_,_],
-            [_,_,_,_,4,_,_,_,9] ]). 
-
-puzzle(4, [ [_,_,_,_,_,_,_,_,_],
-            [_,_,_,_,_,3,_,8,5],
-            [_,_,1,_,2,_,_,_,_],
-            [_,_,_,5,_,7,_,_,_],
-            [_,_,4,_,_,_,1,_,_],
-            [_,9,_,_,_,_,_,_,_],
-            [5,_,_,_,_,_,_,7,3],
-            [_,_,2,_,1,_,_,_,_],
-            [_,_,_,_,4,_,_,_,9] ]).
 
 % ==============================================
 % =============== Print Puzzle =================
