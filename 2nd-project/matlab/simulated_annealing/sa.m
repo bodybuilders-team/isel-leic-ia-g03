@@ -1,4 +1,4 @@
-function Res = SA(Tmax, Tmin, R, k, ...
+function Res = sa(Tmax, Tmin, R, k, ...
     data, getInitialSolution, getRandomNeigh, evalFunc, ...
     isOptimum, sense)
     % Simulated Annealing (algorithm 2 for minimization of f) 
@@ -113,12 +113,11 @@ function Res = SA(Tmax, Tmin, R, k, ...
     
     Res = struct('T', T, 'NumEvaluations', numEvaluations, 'Cost', fu, ...
         'Tmax', Tmax, 'Tmin', Tmin, 'R', R, 'k', k, ...
-        'u', u.solution, 'F', F, 's', u);
+        'u', u, 'F', F, 's', u);
     
     figure(1);
     plot(F);
     %pause
-    
 end
 
 %/////////////////////////////////////////////////////

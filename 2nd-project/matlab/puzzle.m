@@ -1,0 +1,71 @@
+function puzzle = puzzle(difficulty)
+    puzzles = {
+        % Easy
+        [nan,nan,nan,9,nan,nan,5,1,7;
+        nan,nan,5,nan,2,nan,nan,nan,nan;
+        nan,9,nan,5,nan,nan,8,2,4;
+        3,7,nan,nan,9,2,1,4,nan;
+        4,nan,9,nan,1,nan,6,7,3;
+        nan,nan,1,nan,3,nan,nan,nan,8;
+        6,nan,3,nan,8,nan,4,nan,9;
+        nan,nan,nan,nan,6,nan,nan,nan,1;
+        nan,8,4,nan,nan,1,7,6,nan]
+
+        % Medium
+        [1,9,nan,8,4,nan,nan,nan,nan;
+        nan,8,4,nan,nan,nan,6,9,nan;
+        nan,nan,nan,nan,5,9,nan,4,nan;
+        7,nan,2,9,nan,4,nan,3,nan;
+        6,4,nan,nan,7,nan,5,nan,nan;
+        nan,1,nan,nan,nan,nan,nan,7,nan;
+        3,7,5,4,6,8,nan,nan,nan;
+        nan,nan,nan,5,nan,nan,7,nan,3;
+        nan,nan,nan,7,nan,nan,nan,nan,nan]
+
+        % Hard
+        [9,nan,2,nan,7,nan,3,nan,nan;
+        nan,nan,nan,nan,nan,8,2,nan,nan;
+        nan,nan,6,nan,nan,5,9,nan,nan;
+        nan,nan,nan,nan,nan,nan,nan,nan,nan;
+        nan,nan,9,nan,nan,7,nan,nan,5;
+        nan,nan,1,3,nan,nan,6,nan,nan;
+        8,2,nan,nan,nan,nan,nan,nan,nan;
+        nan,nan,7,nan,nan,1,nan,nan,4;
+        nan,1,nan,nan,8,nan,nan,nan,6]
+
+        % Expert
+        [9,6,nan,4,nan,5,nan,nan,nan;
+        nan,nan,nan,nan,nan,nan,4,nan,nan;
+        3,7,nan,nan,nan,nan,nan,nan,6;
+        nan,3,1,6,nan,nan,nan,nan,nan;
+        nan,nan,nan,8,3,nan,nan,nan,nan;
+        nan,nan,nan,nan,4,nan,nan,nan,1;
+        nan,nan,3,2,nan,nan,nan,nan,nan;
+        4,nan,nan,nan,nan,nan,8,nan,nan;
+        nan,1,8,nan,nan,6,7,5,nan]
+
+        % Nightmare
+        [nan,nan,nan,nan,nan,8,3,2,nan;
+        nan,6,nan,nan,nan,nan,nan,nan,nan;
+        3,4,nan,2,nan,nan,5,nan,nan;
+        nan,nan,6,3,nan,nan,nan,nan,nan;
+        1,3,nan,nan,nan,9,nan,nan,4;
+        nan,nan,8,nan,nan,nan,1,nan,nan;
+        nan,nan,nan,nan,7,nan,nan,nan,9;
+        nan,nan,1,nan,nan,nan,nan,nan,nan;
+        5,2,nan,8,nan,nan,4,nan,nan]
+
+        % Impossible
+        [nan,nan,nan,nan,nan,nan,nan,nan,nan;
+        nan,nan,nan,nan,nan,3,nan,8,5;
+        nan,nan,1,nan,2,nan,nan,nan,nan;
+        nan,nan,nan,5,nan,7,nan,nan,nan;
+        nan,nan,4,nan,nan,nan,1,nan,nan;
+        nan,9,nan,nan,nan,nan,nan,nan,nan;
+        5,nan,nan,nan,nan,nan,nan,7,3;
+        nan,nan,2,nan,1,nan,nan,nan,nan;
+        nan,nan,nan,nan,4,nan,nan,nan,9]
+    };
+
+    puzzle = puzzles{difficulty+1};
+end
