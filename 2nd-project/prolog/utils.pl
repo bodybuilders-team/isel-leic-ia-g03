@@ -1,16 +1,27 @@
 % Finds the first empty cell in the puzzle
-find_empty(Puzzle, RowIdx, ColumnIdx) :- % Make RANDOM
+find_empty_cell(Puzzle, RowIdx, ColumnIdx) :-
     nth0(RowIdx, Puzzle, RowList),
     nth0(ColumnIdx, RowList, '_').
 
+% TODO: THIS DOES NOT WORK
+% Finds a random empty cell in the puzzle
+find_random_empty_cell(Puzzle, RowIdx, ColumnIdx) :-
+    findall([RowIdx, ColumnIdx], (
+        nth0(RowIdx, Puzzle, RowList),
+        nth0(ColumnIdx, RowList, '_')
+    ), EmptyCells),
+    random_permutation(EmptyCells, [[RowIdx, ColumnIdx]|_]).
+    % or this: random_member([RowIdx, ColumnIdx], EmptyCells).
+
 % Finds the possible values for a cell in the puzzle
 % considering the current state of the puzzle
-find_possible_values(Puzzle, RowIdx, ColumnIdx, PossibleValues) :-
+find_possible_values(Puzzle, RowIdx, ColumnIdx, ShuffledPossibleValues) :-
     findall(Value, (
         between(1, 9, Value),
         set_value(Puzzle, RowIdx, ColumnIdx, Value, NewPuzzle),
         valid_unfilled(NewPuzzle)
-    ), PossibleValues).
+    ), PossibleValues),
+    random_permutation(PossibleValues, ShuffledPossibleValues).
 
 % Sets the value of a cell in the puzzle
 set_value(Puzzle, RowIdx, ColumnIdx, Value, NewPuzzle) :-
@@ -23,8 +34,6 @@ set_value(Puzzle, RowIdx, ColumnIdx, Value, NewPuzzle) :-
 
 % Checks if the puzzle is valid with unfilled cells
 valid_unfilled(Puzzle) :-
-    length(Puzzle, 9),
-    maplist(same_length(Puzzle), Puzzle),
     maplist(legal_row_column, Puzzle),
     transpose(Puzzle, Columns),
     maplist(legal_row_column, Columns),

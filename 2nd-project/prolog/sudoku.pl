@@ -30,8 +30,11 @@ sudoku :-
     writeln('Puzzle:'),
     print_puzzle(Puzzle),
     puzzle_algorithm(Algorithm),
+
+    % Solve the puzzle
     writeln('Solving...'),
-    solve(Puzzle, Algorithm, Solution),
+    time(solve(Puzzle, Algorithm, Solution)),
+    writeln('Solved!'),
     writeln('Solution:'),
     print_puzzle(Solution).
 

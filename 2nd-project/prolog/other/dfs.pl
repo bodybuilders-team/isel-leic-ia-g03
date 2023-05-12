@@ -18,14 +18,14 @@ dfs(Node, [Node | Path]) :-
 
 % s/2 Represents a move in the sudoku puzzle
 s(Puzzle, NewPuzzle) :-
-    find_empty(Puzzle, RowIdx, ColumnIdx), !,
+    find_empty_cell(Puzzle, RowIdx, ColumnIdx), !,
     %between(1, 9, Value),
     find_possible_values(Puzzle, RowIdx, ColumnIdx, PossibleValues),
     member(Value, PossibleValues),
     set_value(Puzzle, RowIdx, ColumnIdx, Value, NewPuzzle).
 
 % find_empty Finds the first empty cell in the puzzle
-find_empty(Puzzle, RowIdx, ColumnIdx) :-
+find_empty_cell(Puzzle, RowIdx, ColumnIdx) :-
     nth0(RowIdx, Puzzle, RowList),
     nth0(ColumnIdx, RowList, '_').
 
