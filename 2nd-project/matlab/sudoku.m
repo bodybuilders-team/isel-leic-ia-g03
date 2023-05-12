@@ -85,7 +85,7 @@ function solution = solve(puzzle, algorithm)
 
         % Temperature bounds
         % Tmax = 0.05; % Worse results
-        Tmax = 0.5; % Good results
+        Tmax = 5000; % Good results
         Tmin = 0.0001;
 
         % Rate
@@ -96,9 +96,7 @@ function solution = solve(puzzle, algorithm)
 
         % Max. number of iterations per temperature
         k = 5;
-        Results  = sa(Tmax, Tmin, R, k, ...
-            data, @getInitialSolution, @getRandomNeighbour, ...
-                    @evaluate, @isOptimum, sense);
+        Results = sa(Tmax, Tmin, R, k, data, @getInitialSolution, @getRandomNeighbour, @evaluate, @isOptimum, sense);
 
         Res = [[Results(:).T]; [Results(:).NumEvaluations]; [Results(:).Cost]];
         fprintf('Final Temp\t\tNum Evaluations\t\tBest Cost\n');
@@ -116,40 +114,32 @@ end
 % but the values must be valid for a subgrid (3x3) of the puzzle
 function s = getInitialSolution(data)
     s = data.puzzle;
-    for i = 1:9
-        for j = 1:9
-            if isnan(s(i,j))
-                s(i,j) = randi(9);
-                while ~isValid(s, i, j)
-                    s(i,j) = randi(9);
+    % For each subgrid (3x3) of the puzzle
+    % Check the list of values that are missing in the subgrid
+    % Fill the empty cells with random values from the list
+    % Remove the chosen value from the list
+    for i = 1:3:9
+        for j = 1:3:9
+            missingValues = getMissingValues(s, i, j);
+            for k = i:i+2
+                for l = j:j+2
+                    if isnan(s(k,l))
+                        s(k,l) = missingValues(randi(length(missingValues)));
+                        missingValues(missingValues == s(k,l)) = [];
+                    end
                 end
             end
         end
     end
 end
 
-% Check if the value in the cell is valid for the subgrid (3x3) of the puzzle
-function res = isValid(s, i, j)
-    res = true;
-    for k = 1:9
-        if s(i,j) == s(i,k) && j ~= k
-            res = false;
-            break;
-        end
-        if s(i,j) == s(k,j) && i ~= k
-            res = false;
-            break;
-        end
-    end
-    if res
-        subgridI = floor((i-1)/3)*3 + 1;
-        subgridJ = floor((j-1)/3)*3 + 1;
-        for k = subgridI:subgridI+2
-            for l = subgridJ:subgridJ+2
-                if s(i,j) == s(k,l) && (i ~= k || j ~= l)
-                    res = false;
-                    break;
-                end
+% Get the list of values that are missing in the subgrid (3x3) of the puzzle
+function missingValues = getMissingValues(s, i, j)
+    missingValues = [1 2 3 4 5 6 7 8 9];
+    for k = i:i+2
+        for l = j:j+2
+            if ~isnan(s(k,l))
+                missingValues(missingValues == s(k,l)) = [];
             end
         end
     end
@@ -161,18 +151,33 @@ function n = getRandomNeighbour(s, data)
 
     % Choose a random subgrid
     % The subgrid should have at least two empty cells
-    % Choose two random empty cells in the subgrid and swap their values
-
-    % Choose a random empty cell in the puzzle
-    i = randi(9);
-    j = randi(9);
-    while ~isnan(data.puzzle(i,j))
-        i = randi(9);
-        j = randi(9);
+    % e.g. subgrid (1,1) -> i = 1, j = 1
+    % e.g. subgrid (2,2) -> i = 4, j = 4
+    i = 3*randi(3)-2;
+    j = 3*randi(3)-2;
+    while length(find(isnan(data.puzzle(i:i+2,j:j+2)))) < 2
+        i = 3*randi(3)-2;
+        j = 3*randi(3)-2;
     end
 
-    % Fill the cell with a random value in the neighbour
-    n(i,j) = randi(9);
+    % Choose two random empty cells in the subgrid
+    emptyCells = find(isnan(data.puzzle(i:i+2,j:j+2)));
+    k = emptyCells(randi(length(emptyCells)));
+    emptyCells(emptyCells == k) = [];
+    l = emptyCells(randi(length(emptyCells)));
+
+    %fprintf('Subgrid (%d,%d)\n', i, j);
+    %fprintf('K = %d, L = %d\n', k, l);
+    %fprintf('Empty cells (%d,%d) and (%d,%d)\n', i+floor((k-1)/3),j+mod(k-1,3),i+floor((l-1)/3),j+mod(l-1,3));
+
+    % Swap the values of the two cells
+    temp = n(i+floor((k-1)/3),j+mod(k-1,3));
+    n(i+floor((k-1)/3),j+mod(k-1,3)) = n(i+floor((l-1)/3),j+mod(l-1,3));
+    n(i+floor((l-1)/3),j+mod(l-1,3)) = temp;
+
+    %fprintf('Swapped (%d,%d) with (%d,%d)\n', i+floor((k-1)/3),j+mod(k-1,3),i+floor((l-1)/3),j+mod(l-1,3));
+    %printPuzzle(s);
+    %printPuzzle(n);
 end
 
 % Evaluation function

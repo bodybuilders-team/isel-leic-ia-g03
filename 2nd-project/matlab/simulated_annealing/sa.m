@@ -63,8 +63,8 @@ function Res = sa(Tmax, Tmin, R, k, ...
                 dif = -dif;
             end
                 
-%             if (fv < fu) % Minimization problem
-%             if (fv > fu) % Maximization problem
+            % if (fv < fu) % Minimization problem
+            % if (fv > fu) % Maximization problem
 
             fprintf('fu (sol) = %d, fv (new neighbour) = %d\n', fu, fv); 
 
