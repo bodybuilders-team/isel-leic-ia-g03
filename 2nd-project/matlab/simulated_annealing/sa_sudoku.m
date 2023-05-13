@@ -1,8 +1,6 @@
 % SA - Simulated Annealing for Sudoku
 
-% NÃO CONSIGO DAR IMPORT DESTE FILE
-
-# Prevent Octave from thinking that this is a function file:
+% Prevent Octave from thinking that this is a function file:
 1;
 
 % Get the initial solution for the sudoku with random values

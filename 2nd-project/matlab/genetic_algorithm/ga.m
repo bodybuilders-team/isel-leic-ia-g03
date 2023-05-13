@@ -1,5 +1,5 @@
-function Res = GA(data, tmax, popSize, crossProb, ...
-                        mutProb, select, cross, mutate, ...
+function Res = ga(data, tmax, popSize, crossProb, ...
+                        mutProb, select, crossFunc, mutate, ...
                         getInitialSolution, ...
                         evalFunc, isOptimum, sense)
     % GA Genetic Algorithm
@@ -18,17 +18,17 @@ function Res = GA(data, tmax, popSize, crossProb, ...
     numEvaluations = 0;
     % Variable used to specify stop criteria
     foundOptimum = false;
-    
+
     % Initialize the population P(0), at random.
     initialPop = getInitialPopulation(data, popSize, getInitialSolution);
     % Evaluate P(0)
-    initialPopFit =  evaluatePopulation(data, initialPop, evalFunc);   
+    initialPopFit =  evaluatePopulation(data, initialPop, evalFunc);
     % Increment number of evaluations
     numEvaluations = numEvaluations + popSize;
     % Current population and evaluation
     pop = initialPop;
     popFit = initialPopFit;
-     
+
     j = 1;
     % Get best fitness
     fu = getBestFitness(popFit, sense);
@@ -36,7 +36,7 @@ function Res = GA(data, tmax, popSize, crossProb, ...
     % Mean fitness
     MeanFit(j) = mean(popFit);
     j = j+1;
-    
+
     % Iteration index
     t = 0;
     % Repeat step 1 to 5 (until close to saturation)
@@ -47,7 +47,7 @@ function Res = GA(data, tmax, popSize, crossProb, ...
         %pop = select(pop, popFit, sense);
         pop = select(pop, popFit);
         % Step 3 Cross P(t)
-        pop = cross(data, pop, crossProb);
+        pop = crossFunc(data, pop, crossProb);
         % Step 4 Mutate some solution from P(t)
         pop = mutate(data, pop, mutProb);
         % Step 5 Evaluate P(t)
@@ -55,7 +55,7 @@ function Res = GA(data, tmax, popSize, crossProb, ...
 
         % Show first solution
         %pop(1,:)
-        
+
         % Increment number of evaluations
         numEvaluations = numEvaluations + popSize;
         % Get best fitness
@@ -73,13 +73,13 @@ function Res = GA(data, tmax, popSize, crossProb, ...
     % Get best solution
     [fu, I] = getBestFitness(popFit, sense);
     u = pop(I(1));
-    
-    disp('BestCost: '); 
+
+    disp('BestCost: ');
     disp(fu);
-    
-    disp('numEvaluations: '); 
+
+    disp('numEvaluations: ');
     disp(numEvaluations);
-    
+
     % Plot
     figure(1)
     plot(Fit);
@@ -94,18 +94,17 @@ function Res = GA(data, tmax, popSize, crossProb, ...
     axis([1 t+1 50 110]);
     legend('Pop Max', 'Pop Mean');
     %pause
-    
+
     Res = struct('NumEvaluations', numEvaluations, 'Cost', fu, ...
         'tmax', tmax, 'popSize', popSize, 'crossProb', crossProb, ...
         'mutProb', mutProb, 'u', u, 's', u, 'Fit', Fit);
-    
+
 end
 
 %////////////////////////////////////////////////////////////
 
 function [Fit, I] = getBestFitness(popFit, sense)
     if strcmp(sense, 'maximize')
-        % Maximization problem
         [Fit, I] = max(popFit);
     elseif strcmp(sense, 'minimize')
         [Fit, I] = min(popFit);
@@ -114,15 +113,21 @@ end
 
 % Generate initial population
 function P = getInitialPopulation(data, popSize, getInitialSolution)
+    P = cell(1, popSize);  % Initialize P as a cell array
+
     for i = 1 : popSize
-        P(i,:) = getInitialSolution(data);
-    end 
+        P{i} = getInitialSolution(data);  % Assign the solution to P{i}
+    end
+
+    P = reshape(P, 1, popSize);  % Convert cell array to a row vector
 end
+
 
 % Evaluate population
 function FP = evaluatePopulation(data, population, evalFunc)
-    popSize = size(population,1);
+    popSize = length(population);
     for i = 1 : popSize
-        FP(i) = evalFunc(population(i,:), data);
-    end 
+        FP(i) = evalFunc(population{i}, data);
+        %fprintf('FP(%d) = %f\n', i, FP(i));
+    end
 end

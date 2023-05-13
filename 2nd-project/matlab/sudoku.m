@@ -15,7 +15,7 @@
 % ====================================================
 
 source('./simulated_annealing/sa_sudoku.m');
-% source('./genetic_algorithm/ga_sudoku.m');
+source('./genetic_algorithm/ga_sudoku.m');
 
 function sudoku()
     disp('Welcome to the Sudoku Solver in MATLAB!');
@@ -82,10 +82,10 @@ function solution = solve(puzzle, algorithm)
         optimum = 0;
         data = struct('puzzle', puzzle, 'optimum', optimum);
 
-        Tmax = 5000;  % Initial temperature (can be adjusted)
-        Tmin = 0.001; % Final temperature (can be adjusted)
-        R = 0.005;    % Cooling rate (can be adjusted)
-        k = 5;       % Number of iterations per temperature (can be adjusted)
+        Tmax = 5000;        % Initial temperature (can be adjusted)
+        Tmin = 0.001;       % Final temperature (can be adjusted)
+        R = 0.005;          % Cooling rate (can be adjusted)
+        k = 8;              % Number of iterations per temperature (can be adjusted)
         sense = 'minimize'; % Minimization problem
 
         Results = sa(Tmax, Tmin, R, k, data, @getInitialSolution, @getRandomNeighbour, @evaluate, @isOptimum, sense);
@@ -96,7 +96,34 @@ function solution = solve(puzzle, algorithm)
 
         solution = Results(end).s;
     else
-        solution = GA(puzzle);
+        % Create struct data that will contain problem data
+        optimum = 0;
+        data = struct('puzzle', puzzle, 'optimum', optimum);
+
+        sense = 'minimize'; % Minimization problem
+        tmax = [1000];       % Max number of iterations
+        popSize = [10];     % Population size
+        crossProb = [0.7];  % Cross  probability
+        mutProb = [0.1];    % Mutation probability
+
+        % Run Tests
+        NumbOfTests = length(tmax);
+        for f = 1 : NumbOfTests
+            fprintf('\ntmax=%d', tmax(f));
+            fprintf('\npopSize=%d', popSize(f));
+            fprintf('\ncrossProb=%.1f', crossProb(f));
+            fprintf('\nmutProb=%.1f\n', mutProb(f));
+
+            fprintf('\nNumEvaluations\t\tCost\n');
+            fprintf('============================\n');
+            Results = ga(data, tmax(f), popSize(f), crossProb(f), mutProb(f), @select, @crossover, @mutate, ...
+                @getInitialSolution, @evaluate, @isOptimum, sense);
+
+            Res = [[Results.NumEvaluations]; [Results.Cost]];
+            fprintf('%d\t\t%d\n', Res);
+
+            solution = Results.s;
+        end
     end
 end
 
