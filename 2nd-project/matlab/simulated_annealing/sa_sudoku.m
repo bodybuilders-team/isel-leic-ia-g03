@@ -2,6 +2,9 @@
 
 % NÃO CONSIGO DAR IMPORT DESTE FILE
 
+# Prevent Octave from thinking that this is a function file:
+1;
+
 % Get the initial solution for the sudoku with random values
 % The values are chosen randomly from 1 to 9 for each empty cell
 % but the values must be valid for a subgrid (3x3) of the puzzle
@@ -85,7 +88,7 @@ end
 
 % isOptimum
 % Parameters:
-%   fu - the target function (function to be maximized) 
+%   fu - the target function (function to be maximized)
 %   data - the data for the problem
 % Returns:
 %   res - true if the current solution is the optimum, false otherwise
