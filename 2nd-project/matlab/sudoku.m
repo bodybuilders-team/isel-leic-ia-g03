@@ -101,10 +101,10 @@ function solution = solve(puzzle, algorithm)
         data = struct('puzzle', puzzle, 'optimum', optimum);
 
         sense = 'minimize'; % Minimization problem
-        tmax = [1000];       % Max number of iterations
-        popSize = [10];     % Population size
+        tmax = [1000];      % Max number of iterations
+        popSize = [100];    % Population size
         crossProb = [0.7];  % Cross  probability
-        mutProb = [0.1];    % Mutation probability
+        mutProb = [0.25];   % Mutation probability
 
         % Run Tests
         NumbOfTests = length(tmax);

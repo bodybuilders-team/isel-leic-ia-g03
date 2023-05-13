@@ -11,7 +11,7 @@ function newPop = select(pop, popFit)
 
     % Binary tournament selection
     for i = 1 : popSize
-        if popFit(i) > popFit(popRandIdxs(i))
+        if popFit(i) < popFit(popRandIdxs(i)) % Minimization
             newPop{i} = pop{i};
         else
             newPop{i} = pop{popRandIdxs(i)};
