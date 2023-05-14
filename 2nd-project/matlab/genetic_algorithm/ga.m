@@ -1,7 +1,34 @@
-function Res = ga(data, tmax, popSize, crossProb, ...
-                        mutProb, select, crossFunc, mutate, ...
-                        getInitialSolution, ...
-                        evalFunc, isOptimum, sense)
+% Function: ga
+% ----------------------------
+% Performs a genetic algorithm to find the optimum solution of a problem.
+%
+% @param data: data structure containing problem information
+% @param t_max: maximum number of iterations
+% @param pop_size: population size
+% @param cross_prob: crossover probability
+% @param mut_prob: mutation probability
+% @param select: selection function
+% @param crossover: crossover function
+% @param mutate: mutation function
+% @param get_initial_solution: function to generate an initial solution
+% @param evaluate: function to evaluate a solution
+% @param is_optimum: function to check if a solution is the optimum
+% @param sense: 'maximize' or 'minimize'
+%
+% @return res: structure with the following fields:
+%   - num_evaluations: number of evaluations
+%   - cost: cost of the best solution found
+%   - t_max: maximum number of iterations
+%   - pop_size: population size
+%   - cross_prob: crossover probability
+%   - mut_prob: mutation probability
+%   - u: best solution found
+%   - s: best solution found
+%   - fit: vector with the best fitness found in each iteration
+function res = ga(data, t_max, pop_size, cross_prob, ...
+                        mut_prob, select, crossover, mutate, ...
+                        get_initial_solution, ...
+                        evaluate, is_optimum, sense)
     % GA Genetic Algorithm
     %   Make t = 0;
     %   Initialize the population P(0), at random.
@@ -15,119 +42,132 @@ function Res = ga(data, tmax, popSize, crossProb, ...
     %
 
     % Number of evaluations
-    numEvaluations = 0;
+    num_evaluations = 0;
     % Variable used to specify stop criteria
-    foundOptimum = false;
+    found_optimum = false;
 
     % Initialize the population P(0), at random.
-    initialPop = getInitialPopulation(data, popSize, getInitialSolution);
+    initial_pop = get_initial_population(data, pop_size, get_initial_solution);
     % Evaluate P(0)
-    initialPopFit =  evaluatePopulation(data, initialPop, evalFunc);
+    initial_pop_fit =  evaluate_population(data, initial_pop, evaluate);
     % Increment number of evaluations
-    numEvaluations = numEvaluations + popSize;
+    num_evaluations = num_evaluations + pop_size;
     % Current population and evaluation
-    pop = initialPop;
-    popFit = initialPopFit;
+    pop = initial_pop;
+    pop_fit = initial_pop_fit;
 
     j = 1;
     % Get best fitness
-    fu = getBestFitness(popFit, sense);
-    Fit(j) = fu;
+    fu = get_best_fitness(pop_fit, sense);
+    fit(j) = fu;
     % Mean fitness
-    MeanFit(j) = mean(popFit);
+    mean_fit(j) = mean(pop_fit);
     j = j+1;
 
     % Iteration index
     t = 0;
     % Repeat step 1 to 5 (until close to saturation)
-    while (t < tmax && ~foundOptimum)
+    while (t < t_max && ~found_optimum)
         % Step 1 Increment iteration index
         t = t+1;
         % Step 2 Select the fittest from P(t-1) to build P(t)
-        %pop = select(pop, popFit, sense);
-        pop = select(pop, popFit);
+        %pop = select(pop, pop_fit, sense);
+        pop = select(pop, pop_fit);
         % Step 3 Cross P(t)
-        pop = crossFunc(data, pop, crossProb);
+        pop = crossover(data, pop, cross_prob);
         % Step 4 Mutate some solution from P(t)
-        pop = mutate(data, pop, mutProb);
+        pop = mutate(data, pop, mut_prob);
         % Step 5 Evaluate P(t)
-        popFit = evaluatePopulation(data, pop, evalFunc);
-
-        % Show first solution
-        %pop(1,:)
+        pop_fit = evaluate_population(data, pop, evaluate);
 
         % Increment number of evaluations
-        numEvaluations = numEvaluations + popSize;
+        num_evaluations = num_evaluations + pop_size;
         % Get best fitness
-        fu = getBestFitness(popFit, sense)
-        Fit(j) = fu;
-         % Mean fitness
-        MeanFit(j) = mean(popFit);
+        fu = get_best_fitness(pop_fit, sense)
+        fit(j) = fu;
+        % Mean fitness
+        mean_fit(j) = mean(pop_fit);
         j = j+1;
         % if optimum found then stop.
-        if isOptimum(fu, data)
-            foundOptimum = true;
+        if is_optimum(fu, data)
+            found_optimum = true;
         end
     end
 
     % Get best solution
-    [fu, I] = getBestFitness(popFit, sense);
+    [fu, I] = get_best_fitness(pop_fit, sense);
     u = pop(I(1));
 
-    disp('BestCost: ');
-    disp(fu);
-
-    disp('numEvaluations: ');
-    disp(numEvaluations);
+    fprintf('BestCost: %f\n', fu);
+    fprintf('num_evaluations: %d\n', num_evaluations);
 
     % Plot
     figure(1)
-    plot(Fit);
-    i = 1 : t+1; % t reaches tmax if the optimum solution is not found before
-    Fit;
-    MeanFit;
+    plot(fit);
+    i = 1 : t+1; % t reaches t_max if the optimum solution is not found before
+    fit;
+    mean_fit;
     t
     figure(2)
-    plot(i, Fit / data.optimum * 100, 'k-', i, MeanFit / data.optimum * 100, 'k:');
+    plot(i, fit / data.optimum * 100, 'k-', i, mean_fit / data.optimum * 100, 'k:');
     xlabel('Generation no.');
     ylabel('Fitness (%)');
     axis([1 t+1 50 110]);
     legend('Pop Max', 'Pop Mean');
-    %pause
 
-    Res = struct('NumEvaluations', numEvaluations, 'Cost', fu, ...
-        'tmax', tmax, 'popSize', popSize, 'crossProb', crossProb, ...
-        'mutProb', mutProb, 'u', u, 's', u, 'Fit', Fit);
-
+    res = struct('num_evaluations', num_evaluations, 'cost', fu, ...
+        't_max', t_max, 'pop_size', pop_size, 'cross_prob', cross_prob, ...
+        'mut_prob', mut_prob, 'u', u, 's', u, 'fit', fit);
 end
 
-%////////////////////////////////////////////////////////////
-
-function [Fit, I] = getBestFitness(popFit, sense)
+% Function: get_best_fitness
+% ----------------------------
+% Returns the best fitness and its index
+%
+% @param pop_fit: vector with the fitness of each individual
+% @param sense: 'maximize' or 'minimize'
+%
+% @return fit: best fitness
+% @return I: index of the best fitness
+function [fit, i] = get_best_fitness(pop_fit, sense)
     if strcmp(sense, 'maximize')
-        [Fit, I] = max(popFit);
+        [fit, i] = max(pop_fit);
     elseif strcmp(sense, 'minimize')
-        [Fit, I] = min(popFit);
+        [fit, i] = min(pop_fit);
     end
 end
 
-% Generate initial population
-function P = getInitialPopulation(data, popSize, getInitialSolution)
-    P = cell(1, popSize);  % Initialize P as a cell array
+% Function: get_initial_population
+% ----------------------------
+% Returns the initial population
+%
+% @param data: structure with the data
+% @param pop_size: population size
+% @param get_initial_solution: function to generate an initial solution
+%
+% @return pop: initial population
+function pop = get_initial_population(data, pop_size, get_initial_solution)
+    pop = cell(1, pop_size);  % Initialize P as a cell array
 
-    for i = 1 : popSize
-        P{i} = getInitialSolution(data);  % Assign the solution to P{i}
+    for i = 1 : pop_size
+        pop{i} = get_initial_solution(data);  % Assign the solution to P{i}
     end
 
-    P = reshape(P, 1, popSize);  % Convert cell array to a row vector
+    pop = reshape(pop, 1, pop_size);  % Convert cell array to a row vector
 end
 
-
-% Evaluate population
-function FP = evaluatePopulation(data, population, evalFunc)
-    popSize = length(population);
-    for i = 1 : popSize
-        FP(i) = evalFunc(population{i}, data);
-        %fprintf('FP(%d) = %f\n', i, FP(i));
+% Function: evaluate_population
+% ----------------------------
+% Returns the fitness of each individual
+%
+% @param data: structure with the data
+% @param pop: population
+% @param evaluate: function to evaluate a solution
+%
+% @return fp: vector with the fitness of each individual
+function fp = evaluate_population(data, pop, evaluate)
+    pop_size = length(pop);
+    for i = 1 : pop_size
+        fp(i) = evaluate(pop{i}, data);
     end
 end

@@ -4,74 +4,142 @@
 % Prevent Octave from thinking that this is a function file:
 1;
 
-% Selection
-function newPop = select(pop, popFit)
-    popSize = length(pop);
-    popRandIdxs = randi([1, popSize], 1, popSize);
+% Function: select
+% ----------------------------
+% Select the best individuals of the population.
+%
+% @param pop: the population
+% @param pop_fit: the fitness of the population
+% @return new_pop: the selected population
+function new_pop = select(pop, pop_fit)
+    pop_size = length(pop);
+    pop_rand_idxs = randi([1, pop_size], 1, pop_size); % Random indexes for the second parent
 
     % Binary tournament selection
-    for i = 1 : popSize
-        if popFit(i) < popFit(popRandIdxs(i)) % Minimization
-            newPop{i} = pop{i};
+    for i = 1 : pop_size
+        if pop_fit(i) < pop_fit(pop_rand_idxs(i)) % Minimization
+            new_pop{i} = pop{i};
         else
-            newPop{i} = pop{popRandIdxs(i)};
+            new_pop{i} = pop{pop_rand_idxs(i)};
         end
     end
 end
 
-% Crossing
-function newPop = crossover(data, pop, crossProb)
+% Function: crossover
+% ----------------------------
+% Cross the population.
+%
+% @param data: the data for the problem
+% @param pop: the population
+% @param cross_prob: the probability of crossover
+% @return new_pop: the crossed population
+function new_pop = crossover(data, pop, cross_prob)
     % one-point crossover
-    newPop = onePointCrossover(data, pop, crossProb);
+    new_pop = onePointCrossover(data, pop, cross_prob);
 
     % two-point crossover
-    %newPop = twoPointCrossover(data, pop, crossProb);
+    %new_pop = twoPointCrossover(data, pop, cross_prob);
 end
 
-function newPop = onePointCrossover(data, pop, crossProb)
-    popSize = size(pop, 1);
-    % Choose a random subgrid index (1 to 9)
-    subgridIdx = randi([1,9]);
+% Function: onePointCrossover
+% ----------------------------
+% Cross the population.
+% For each individual of the population, with a probability of cross_prob:
+%   - Choose a random subgrid index (1 to 9)
+%   - All the subgrids before the chosen one are copied from the first parent
+%   - The chosen subgrid is copied from the second parent
+%   - All the subgrids after the chosen one are copied from the first parent
+%
+% @param data: the data for the problem
+% @param pop: the population
+% @param cross_prob: the probability of crossover
+% @return new_pop: the crossed population
+function new_pop = onePointCrossover(data, pop, cross_prob)
+    pop_size = size(pop, 1);
 
-    % All the subgrids before the chosen one are copied from the first parent
-    % All the subgrids after the chosen one are copied from the second parent
-    % The chosen subgrid is copied from the second parent
-    newPop = pop;
+    % Choose a random subgrid index (1 to 9)
+    subgrid_idx = randi([1,9]);
+
+    new_pop = pop;
     for i = 1:length(pop)
-        if rand() < crossProb
-            newPop{i} = pop{1}; % First parent
-            %printPuzzle(pop{1});
-            %printPuzzle(pop{2});
-            %fprintf('Crossing subgrid %d\n', subgridIdx);
+        if rand() < cross_prob
+            new_pop{i} = pop{1}; % First parent
             for j = 1:3:9
-                if j == subgridIdx
-                    newPop{i}(j:j+2,:) = pop{2}(j:j+2,:);
+                if j == subgrid_idx
+                    new_pop{i}(j:j+2,:) = pop{2}(j:j+2,:);
                 else
-                    newPop{i}(j:j+2,:) = pop{1}(j:j+2,:);
+                    new_pop{i}(j:j+2,:) = pop{1}(j:j+2,:);
                 end
             end
-            %printPuzzle(newPop{i});
         end
     end
 end
 
-function newPop = twoPointCrossover(data, pop, crossProb)
-    % To be implemented
- end
+% Function: twoPointCrossover
+% ----------------------------
+% Cross the population.
+% For each individual of the population, with a probability of cross_prob:
+%   - Choose two random subgrid indexes (1 to 9)
+%   - All the subgrids before the first chosen one are copied from the first parent
+%   - All the subgrids between the two chosen ones are copied from the second parent
+%   - All the subgrids after the second chosen one are copied from the first parent
+%
+% @param data: the data for the problem
+% @param pop: the population
+% @param cross_prob: the probability of crossover
+% @return new_pop: the crossed population
+function new_pop = twoPointCrossover(data, pop, cross_prob)
+    pop_size = size(pop, 1);
+
+    % Choose two random subgrid indexes (1 to 9)
+    subgrid_idx1 = randi([1,9]);
+    subgrid_idx2 = randi([1,9]);
+    while subgrid_idx1 == subgrid_idx2
+        subgrid_idx2 = randi([1,9]);
+    end
+    if subgrid_idx1 > subgrid_idx2
+        tmp = subgrid_idx1;
+        subgrid_idx1 = subgrid_idx2;
+        subgrid_idx2 = tmp;
+    end
+
+    new_pop = pop;
+    for i = 1:length(pop)
+        if rand() < cross_prob
+            new_pop{i} = pop{1}; % First parent
+            for j = 1:3:9
+                if j >= subgrid_idx1 && j <= subgrid_idx2
+                    new_pop{i}(j:j+2,:) = pop{2}(j:j+2,:);
+                else
+                    new_pop{i}(j:j+2,:) = pop{1}(j:j+2,:);
+                end
+            end
+        end
+    end
+end
 
 
-% Mutation
-function newPop = mutate(data, pop, mutProb)
-    popSize = size(pop, 1);
-    mutIdxs = randi([1,81], popSize, 1);
-    newPop = pop;
-    probs = rand(popSize, 1);
-    for e = 1:popSize,
-        if probs(e) < mutProb
+% Function: mutate
+% ----------------------------
+% Mutate the population.
+% For each individual of the population, with a probability of mut_prob:
+%   - Choose a random subgrid
+%   - Choose two random empty cells in the subgrid
+%   - Swap the values of the two cells
+%
+% @param data: the data for the problem
+% @param pop: the population
+% @param mut_prob: the probability of mutation
+% @return new_pop: the mutated population
+function new_pop = mutate(data, pop, mut_prob)
+    pop_size = size(pop, 1);
+    mut_idxs = randi([1,81], pop_size, 1);
+    new_pop = pop;
+    probs = rand(pop_size, 1);
+
+    for e = 1:pop_size,
+        if probs(e) < mut_prob
             % Choose a random subgrid
-            % The subgrid should have at least two empty cells
-            % e.g. subgrid (1,1) -> i = 1, j = 1
-            % e.g. subgrid (2,2) -> i = 4, j = 4
             i = 3*randi(3)-2;
             j = 3*randi(3)-2;
             while length(find(isnan(data.puzzle(i:i+2,j:j+2)))) < 2
@@ -80,39 +148,38 @@ function newPop = mutate(data, pop, mutProb)
             end
 
             % Choose two random empty cells in the subgrid
-            emptyCells = find(isnan(data.puzzle(i:i+2,j:j+2)));
-            k = emptyCells(randi(length(emptyCells)));
-            emptyCells(emptyCells == k) = [];
-            l = emptyCells(randi(length(emptyCells)));
+            empty_cells = find(isnan(data.puzzle(i:i+2,j:j+2)));
+            k = empty_cells(randi(length(empty_cells)));
+            empty_cells(empty_cells == k) = [];
+            l = empty_cells(randi(length(empty_cells)));
 
             % Swap the values of the two cells
-            %fprintf('Mutating subgrid (%d,%d) - (%d,%d)\n', i, j, k, l);
-            newPop{e} = pop{e};
-            newPop{e}(i+floor((k-1)/3),j+mod(k-1,3)) = pop{e}(i+floor((l-1)/3),j+mod(l-1,3));
-            newPop{e}(i+floor((l-1)/3),j+mod(l-1,3)) = pop{e}(i+floor((k-1)/3),j+mod(k-1,3));
-            %printPuzzle(pop{e});
-            %printPuzzle(newPop{e});
+            new_pop{e} = pop{e};
+            new_pop{e}(i+floor((k-1)/3),j+mod(k-1,3)) = pop{e}(i+floor((l-1)/3),j+mod(l-1,3));
+            new_pop{e}(i+floor((l-1)/3),j+mod(l-1,3)) = pop{e}(i+floor((k-1)/3),j+mod(k-1,3));
         end
     end
 end
 
-% Get the initial solution for the sudoku with random values
-% The values are chosen randomly from 1 to 9 for each empty cell
-% but the values must be valid for a subgrid (3x3) of the puzzle
-function s = getInitialSolution(data)
+% Function: get_initial_solution
+% ----------------------------
+% Get the initial solution for the sudoku.
+% For each subgrid (3x3) of the puzzle:
+%   - Check the list of values that are missing in the subgrid
+%   - Fill the empty cells with random values from the list
+%
+% @param data - the data for the problem
+% @return s - the initial solution
+function s = get_initial_solution(data)
     s = data.puzzle;
-    % For each subgrid (3x3) of the puzzle
-    % Check the list of values that are missing in the subgrid
-    % Fill the empty cells with random values from the list
-    % Remove the chosen value from the list
     for i = 1:3:9
         for j = 1:3:9
-            missingValues = getMissingValues(s, i, j);
+            missing_values = get_missing_values(s, i, j);
             for k = i:i+2
                 for l = j:j+2
                     if isnan(s(k,l))
-                        s(k,l) = missingValues(randi(length(missingValues)));
-                        missingValues(missingValues == s(k,l)) = [];
+                        s(k,l) = missing_values(randi(length(missing_values)));
+                        missing_values(missing_values == s(k,l)) = [];
                     end
                 end
             end
@@ -120,21 +187,34 @@ function s = getInitialSolution(data)
     end
 end
 
-% Get the list of values that are missing in the subgrid (3x3) of the puzzle
-function missingValues = getMissingValues(s, i, j)
-    missingValues = [1 2 3 4 5 6 7 8 9];
+% Function: get_missing_values
+% ----------------------------
+% Get the list of values that are missing in the subgrid (3x3)
+%
+% @param s - the current solution
+% @param i - the row of the subgrid
+% @param j - the column of the subgrid
+% @return missing_values - the list of missing values
+function missing_values = get_missing_values(s, i, j)
+    missing_values = [1 2 3 4 5 6 7 8 9];
     for k = i:i+2
         for l = j:j+2
             if ~isnan(s(k,l))
-                missingValues(missingValues == s(k,l)) = [];
+                missing_values(missing_values == s(k,l)) = [];
             end
         end
     end
 end
 
-
-% Evaluation function
-% Counts the number of repeated values in the rows and columns
+% Function: evaluate
+% ----------------------------
+% Evaluate the current solution:
+%   - For each row and column, count the number of duplicates
+%   - Return the sum of the two counts
+%
+% @param s  - the current solution
+% @param data - the data for the problem
+% @return e - the evaluation of the current solution
 function e = evaluate(s, data)
     e = 0;
     for i = 1:9
@@ -143,12 +223,13 @@ function e = evaluate(s, data)
     end
 end
 
-% isOptimum
-% Parameters:
-%   fu - the target function (function to be maximized)
-%   data - the data for the problem
-% Returns:
-%   res - true if the current solution is the optimum, false otherwise
-function res = isOptimum(fu, data)
+% Function: is_optimum
+% ----------------------------
+% Check if the current solution is the optimum
+%
+% @param fu - the evaluation of the current solution
+% @param data - the data for the problem
+% @return res - true if the current solution is the optimum, false otherwise
+function res = is_optimum(fu, data)
     res = fu == data.optimum;
 end

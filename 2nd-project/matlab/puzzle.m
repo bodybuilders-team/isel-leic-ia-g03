@@ -1,3 +1,9 @@
+% Function: puzzle
+% ----------------------------
+% Returns a puzzle of the given difficulty
+%
+% @param difficulty: The difficulty of the puzzle
+% @return puzzle: The puzzle
 function puzzle = puzzle(difficulty)
     puzzles = {
         % Easy
