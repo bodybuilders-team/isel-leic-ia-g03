@@ -112,8 +112,8 @@ function solution = solve(puzzle, algorithm)
     else
         t_max = [1000];      % Max number of iterations
         pop_size = [100];    % Population size
-        cross_prob = [0.5];  % Cross  probability
-        mut_prob = [0.8];   % Mutation probability
+        cross_prob = [0.8];  % Cross  probability
+        mut_prob = [0.3];   % Mutation probability
         num_of_tests = length(t_max);
 
         % Run Tests

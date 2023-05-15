@@ -7,16 +7,18 @@
 % Function: select
 % ----------------------------
 % Select the best individuals of the population.
+% For each individual of the population, compare its fitness with the fitness of a random opponent.
+% If the fitness of the individual is better than the fitness of the opponent, the individual is selected.
 %
 % @param pop: the population
 % @param pop_fit: the fitness of the population
 % @return new_pop: the selected population
 function new_pop = select(pop, pop_fit)
     pop_size = length(pop);
-    pop_rand_idxs = randi([1, pop_size], 1, pop_size); % Random indexes for the second parent
+    pop_rand_idxs = randi([1, pop_size], 1, pop_size); % Random indexes for the opponents
 
     % Binary tournament selection
-    for i = 1 : pop_size
+    for i = 1:pop_size
         if pop_fit(i) < pop_fit(pop_rand_idxs(i)) % Minimization
             new_pop{i} = pop{i};
         else
@@ -35,10 +37,10 @@ end
 % @return new_pop: the crossed population
 function new_pop = crossover(data, pop, cross_prob)
     % one-point crossover
-    new_pop = onePointCrossover(data, pop, cross_prob);
+    %new_pop = onePointCrossover(data, pop, cross_prob);
 
     % two-point crossover
-    %new_pop = twoPointCrossover(data, pop, cross_prob);
+    new_pop = twoPointCrossover(data, pop, cross_prob);
 end
 
 % Function: onePointCrossover
@@ -46,22 +48,23 @@ end
 % Cross the population.
 % For each individual of the population, with a probability of cross_prob:
 %   - Choose a random subgrid index (1 to 9)
-%   - All the subgrids before the chosen one are copied from the first parent
-%   - The chosen subgrid is copied from the second parent
-%   - All the subgrids after the chosen one are copied from the first parent
+%   - All the subgrids before the chosen one are copied from the first parent (current individual)
+%   - All the subgrids after the chosen one (including it) are copied from the second parent(current individual + 1)
 %
 % @param data: the data for the problem
 % @param pop: the population
 % @param cross_prob: the probability of crossover
 % @return new_pop: the crossed population
 function new_pop = onePointCrossover(data, pop, cross_prob)
-    pop_size = size(pop, 1);
+    pop_size = length(pop);
     new_pop = pop;
 
     for i = 1:2:pop_size
         if rand() < cross_prob
             % Choose a random subgrid index (1 to 9)
             subgrid_idx = randi([1,9]);
+
+            % Generate the new individuals
             for j = 1:3:9
                 if j <= subgrid_idx
                     new_pop{i}(j:j+2,:) = pop{i+1}(j:j+2,:);
@@ -80,8 +83,8 @@ end
 % Cross the population.
 % For each individual of the population, with a probability of cross_prob:
 %   - Choose two random subgrid indexes (1 to 9)
-%   - All the subgrids before the first chosen one are copied from the first parent
-%   - All the subgrids between the two chosen ones are copied from the second parent
+%   - All the subgrids before the first chosen one are copied from the first parent (current individual)
+%   - All the subgrids between the two chosen ones are copied from the second parent (current individual + 1)
 %   - All the subgrids after the second chosen one are copied from the first parent
 %
 % @param data: the data for the problem
@@ -89,35 +92,36 @@ end
 % @param cross_prob: the probability of crossover
 % @return new_pop: the crossed population
 function new_pop = twoPointCrossover(data, pop, cross_prob)
-    pop_size = size(pop, 1);
-
-    % Choose two random subgrid indexes (1 to 9)
-    subgrid_idx1 = randi([1,9]);
-    subgrid_idx2 = randi([1,9]);
-    while subgrid_idx1 == subgrid_idx2
-        subgrid_idx2 = randi([1,9]);
-    end
-    if subgrid_idx1 > subgrid_idx2
-        tmp = subgrid_idx1;
-        subgrid_idx1 = subgrid_idx2;
-        subgrid_idx2 = tmp;
-    end
-
+    pop_size = length(pop);
     new_pop = pop;
-    for i = 1:length(pop)
+
+    for i = 1:2:pop_size
         if rand() < cross_prob
-            new_pop{i} = pop{1}; % First parent
+            % Choose two random subgrid indexes (1 to 9)
+            subgrid_idx1 = randi([1,9]);
+            subgrid_idx2 = randi([1,9]);
+            while subgrid_idx1 == subgrid_idx2
+                subgrid_idx2 = randi([1,9]);
+            end
+            if subgrid_idx1 > subgrid_idx2
+                tmp = subgrid_idx1;
+                subgrid_idx1 = subgrid_idx2;
+                subgrid_idx2 = tmp;
+            end
+
+            % Generate the new individual
             for j = 1:3:9
                 if j >= subgrid_idx1 && j <= subgrid_idx2
-                    new_pop{i}(j:j+2,:) = pop{2}(j:j+2,:);
+                    new_pop{i}(j:j+2,:) = pop{i+1}(j:j+2,:);
+                    new_pop{i+1}(j:j+2,:) = pop{i}(j:j+2,:);
                 else
-                    new_pop{i}(j:j+2,:) = pop{1}(j:j+2,:);
+                    new_pop{i}(j:j+2,:) = pop{i}(j:j+2,:);
+                    new_pop{i+1}(j:j+2,:) = pop{i+1}(j:j+2,:);
                 end
             end
         end
     end
 end
-
 
 % Function: mutate
 % ----------------------------
@@ -132,13 +136,12 @@ end
 % @param mut_prob: the probability of mutation
 % @return new_pop: the mutated population
 function new_pop = mutate(data, pop, mut_prob)
-    pop_size = size(pop, 1);
+    pop_size = length(pop);
     mut_idxs = randi([1,81], pop_size, 1);
     new_pop = pop;
-    probs = rand(pop_size, 1);
 
     for e = 1:pop_size,
-        if probs(e) < mut_prob
+        if rand() < mut_prob
             % Choose a random subgrid
             i = 3*randi(3)-2;
             j = 3*randi(3)-2;
