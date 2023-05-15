@@ -96,8 +96,8 @@ function solution = solve(puzzle, algorithm)
     sense = 'minimize'; % Minimization problem
 
     if algorithm == 0
-        t_max = 5000;      % Initial temperature (can be adjusted)
-        t_min = 0.001;     % Final temperature (can be adjusted)
+        t_max = 50000;      % Initial temperature (can be adjusted)
+        t_min = 0.0001;    % Final temperature (can be adjusted)
         r = 0.005;         % Cooling rate (can be adjusted)
         k = 8;             % Number of iterations per temperature (can be adjusted)
 
@@ -112,8 +112,8 @@ function solution = solve(puzzle, algorithm)
     else
         t_max = [1000];      % Max number of iterations
         pop_size = [100];    % Population size
-        cross_prob = [0.8];  % Cross  probability
-        mut_prob = [0.25];   % Mutation probability
+        cross_prob = [0.5];  % Cross  probability
+        mut_prob = [0.8];   % Mutation probability
         num_of_tests = length(t_max);
 
         % Run Tests

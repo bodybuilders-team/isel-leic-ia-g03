@@ -56,19 +56,19 @@ end
 % @return new_pop: the crossed population
 function new_pop = onePointCrossover(data, pop, cross_prob)
     pop_size = size(pop, 1);
-
-    % Choose a random subgrid index (1 to 9)
-    subgrid_idx = randi([1,9]);
-
     new_pop = pop;
-    for i = 1:length(pop)
+
+    for i = 1:2:pop_size
         if rand() < cross_prob
-            new_pop{i} = pop{1}; % First parent
+            % Choose a random subgrid index (1 to 9)
+            subgrid_idx = randi([1,9]);
             for j = 1:3:9
-                if j == subgrid_idx
-                    new_pop{i}(j:j+2,:) = pop{2}(j:j+2,:);
+                if j <= subgrid_idx
+                    new_pop{i}(j:j+2,:) = pop{i+1}(j:j+2,:);
+                    new_pop{i+1}(j:j+2,:) = pop{i}(j:j+2,:);
                 else
-                    new_pop{i}(j:j+2,:) = pop{1}(j:j+2,:);
+                    new_pop{i}(j:j+2,:) = pop{i}(j:j+2,:);
+                    new_pop{i+1}(j:j+2,:) = pop{i+1}(j:j+2,:);
                 end
             end
         end
