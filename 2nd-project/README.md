@@ -2,32 +2,30 @@
 
 > The report of this practical project is available [here](ia_2nd_project.pdf).
 
-## Experimental Evaluation
+## How to run
 
-## Iterative Deepening
+### Prolog
 
-| Difficulty | Time     |
-| ---------- | -------- |
-| Easy       | 34.029 s |
-| Medium     | 83.602 s |
-| Hard       | ? s      |
-| Expert     | ? s      |
-| Evil       | ? s      |
+To run the Prolog version of the Sudoku solver, consult the file `prolog\sudoku.pl` and run the predicate `sudoku/0`:
 
-## A*
+```prolog	
+?- consult('prolog/sudoku.pl').
+true.
 
-| Difficulty | h = 0   | h = No. of empty cells |
-| ---------- | ------- | ---------------------- |
-| Easy       | 1.227 s | 0.619 s                |
-| Medium     | 3.583 s | 2.505 s                |
-| Hard       | ? s     | ? s                    |
-| Expert     | ? s     | ? s                    |
-| Evil       | ? s     | ? s                    |
+?- sudoku.
+```
 
-> `swipl --stack-limit=32g .\prolog\sudoku.pl`
+Some algorithms may require a bigger stack size, in that case run the following command:
 
-### Conclusions:
+`swipl --stack-limit=32g .\prolog\sudoku.pl`
 
-* The A* algorithm is faster than the iterative deepening algorithm;
-* The heuristic function h = 0 is slower than h = No. of empty cells;
-* ...
+This will increase the stack size to 32GB.
+
+
+### Matlab
+
+To run the Matlab version of the Sudoku solver, run the function `sudoku` located in the file `matlab\sudoku.m`:
+
+```matlab
+>> sudoku
+```
