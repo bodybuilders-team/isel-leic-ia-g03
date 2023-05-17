@@ -19,7 +19,7 @@ source('./genetic_algorithm/ga_sudoku.m');
 
 % Function: sudoku
 % ----------------------------
-% Entry point of the application
+% Entry point of the application.
 function sudoku()
     disp('Welcome to the Sudoku Solver in MATLAB!');
 
@@ -28,11 +28,10 @@ function sudoku()
     disp('1 - Medium');
     disp('2 - Hard');
     disp('3 - Expert');
-    disp('4 - Nightmare');
-    disp('5 - Impossible')
-    difficulty = input('Choose the difficulty of the puzzle [0-5]: ');
-    while ~(difficulty >= 0 && difficulty <= 5)
-        difficulty = input('Invalid input! Please choose a difficulty between 0 and 5: ');
+    disp('4 - Evil');
+    difficulty = input('Choose the difficulty of the puzzle [0-4]: ');
+    while ~(difficulty >= 0 && difficulty <= 4)
+        difficulty = input('Invalid input! Please choose a difficulty between 0 and 4: ');
     end
 
     puzzle = puzzle(difficulty);
@@ -57,7 +56,7 @@ end
 
 % Function: print_puzzle
 % ----------------------------
-% Prints the puzzle in a human-readable format
+% Prints the puzzle in a human-readable format.
 %
 % @param puzzle: the puzzle to print
 function print_puzzle(puzzle)
@@ -85,7 +84,7 @@ end
 
 % Function: solve
 % ----------------------------
-% Solves the puzzle using the specified algorithm
+% Solves the puzzle using the specified algorithm.
 %
 % @param puzzle: the puzzle to solve
 % @param algorithm: the algorithm to use
@@ -132,6 +131,84 @@ function solution = solve(puzzle, algorithm)
             fprintf('%d\t\t%d\n', res);
 
             solution = results.s;
+        end
+    end
+end
+
+% Function: ee_solve
+% ----------------------------
+% Experimental Evaluation, solves the puzzle using the specified algorithm
+% N times until a solution (cost 0) is found.
+% Returns the perfect solution to the puzzle.
+%
+% @param puzzle: the puzzle to solve
+% @param algorithm: the algorithm to use
+function solution = ee_solve(puzzle, algorithm)
+    % Create struct data that will contain problem data
+    optimum = 0;
+    data = struct('puzzle', puzzle, 'optimum', optimum);
+    sense = 'minimize'; % Minimization problem
+
+    if algorithm == 0
+        t_max = 50000;      % Initial temperature (can be adjusted)
+        t_min = 0.0001;    % Final temperature (can be adjusted)
+        r = 0.005;         % Cooling rate (can be adjusted)
+        k = 8;             % Number of iterations per temperature (can be adjusted)
+
+        no_runs = 0;
+        best_costs = [];
+
+        while true
+            results = sa(t_max, t_min, r, k, data, @get_initial_solution, @get_random_neighbour, @evaluate, ...
+              @is_optimum, sense);
+
+            no_runs += 1;
+
+            fprintf('Run %d - Best Cost %d\n', no_runs, results(:).cost);
+
+            best_costs = [best_costs, results(:).cost];
+
+            if results(:).cost == 0
+                fprintf('Number of Runs\t\tAverage Best Cost\n');
+                fprintf('%d\t\t%d\n', no_runs, mean(best_costs));
+                solution = results(end).s;
+                return;
+            endif
+        endwhile
+    else
+        t_max = [1000];      % Max number of iterations
+        pop_size = [100];    % Population size
+        cross_prob = [0.8];  % Cross  probability
+        mut_prob = [0.3];   % Mutation probability
+        num_of_tests = length(t_max);
+
+        no_runs = 0;
+        best_costs = [];
+
+        while true
+        % Run Tests
+            for f = 1 : num_of_tests
+                %fprintf('\ntmax=%d', t_max(f));
+                %fprintf('\npopSize=%d', pop_size(f));
+                %fprintf('\ncrossProb=%.1f', cross_prob(f));
+                %fprintf('\nmutProb=%.1f\n', mut_prob(f));
+
+                %fprintf('\nNumEvaluations\t\tCost\n');
+                %fprintf('============================\n');
+                results = ga(data, t_max(f), pop_size(f), cross_prob(f), mut_prob(f), @select, @crossover, @mutate, ...
+                    @get_initial_solution, @evaluate, @is_optimum, sense);
+
+                no_runs += 1;
+
+                fprintf('Run %d - Best Cost %d\n', no_runs, results.cost);
+
+                if results.cost == 0
+                    fprintf('Number of Runs\t\tAverage Best Cost\n');
+                    fprintf('%d\t\t%d\n', no_runs, mean(best_costs));
+                    solution = results.s;
+                    return;
+                endif
+            end
         end
     end
 end

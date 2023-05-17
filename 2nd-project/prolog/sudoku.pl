@@ -45,11 +45,10 @@ puzzle_difficulty(Difficulty) :-
     writeln('1 - Medium'),
     writeln('2 - Hard'),
     writeln('3 - Expert'),
-    writeln('4 - Nightmare'),
-    writeln('5 - Impossible'),
-    write('Choose the difficulty of the puzzle [0-5]: '),
+    writeln('4 - Evil'),
+    write('Choose the difficulty of the puzzle [0-4]: '),
     read(Difficulty),
-    between(0, 5, Difficulty).
+    between(0, 4, Difficulty).
 
 % Asks the user for the algorithm to solve the puzzle
 puzzle_algorithm(Algorithm) :-

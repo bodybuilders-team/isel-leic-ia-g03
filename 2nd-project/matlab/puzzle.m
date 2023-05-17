@@ -50,7 +50,7 @@ function puzzle = puzzle(difficulty)
         4,nan,nan,nan,nan,nan,8,nan,nan;
         nan,1,8,nan,nan,6,7,5,nan]
 
-        % Nightmare
+        % Evil
         [nan,nan,nan,nan,nan,8,3,2,nan;
         nan,6,nan,nan,nan,nan,nan,nan,nan;
         3,4,nan,2,nan,nan,5,nan,nan;
@@ -60,17 +60,6 @@ function puzzle = puzzle(difficulty)
         nan,nan,nan,nan,7,nan,nan,nan,9;
         nan,nan,1,nan,nan,nan,nan,nan,nan;
         5,2,nan,8,nan,nan,4,nan,nan]
-
-        % Impossible
-        [nan,nan,nan,nan,nan,nan,nan,nan,nan;
-        nan,nan,nan,nan,nan,3,nan,8,5;
-        nan,nan,1,nan,2,nan,nan,nan,nan;
-        nan,nan,nan,5,nan,7,nan,nan,nan;
-        nan,nan,4,nan,nan,nan,1,nan,nan;
-        nan,9,nan,nan,nan,nan,nan,nan,nan;
-        5,nan,nan,nan,nan,nan,nan,7,3;
-        nan,nan,2,nan,1,nan,nan,nan,nan;
-        nan,nan,nan,nan,4,nan,nan,nan,9]
     };
 
     puzzle = puzzles{difficulty+1};
