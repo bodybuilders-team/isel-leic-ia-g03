@@ -172,8 +172,8 @@ function solution = ee_solve(puzzle, algorithm)
             end
         end
 
-        fprintf('Number of Runs\t\tAverage Best Cost\n');
-        fprintf('%d\t\t%d\n', total_no_runs, mean(best_costs));
+        fprintf('Number of Runs\t\tAverage Best Cost\t\tMinimum Best Cost\n');
+        fprintf('%d\t\t%d\t\t%d\n', total_no_runs, mean(best_costs), min(best_costs));
     else
         t_max = [1000];      % Max number of iterations
         pop_size = [100];    % Population size
@@ -207,8 +207,8 @@ function solution = ee_solve(puzzle, algorithm)
                 end
             end
         end
-        fprintf('Number of Runs\t\tAverage Best Cost\n');
-        fprintf('%d\t\t%d\n', total_no_runs, mean(best_costs));
+        fprintf('Number of Runs\t\tAverage Best Cost\t\tMinimum Best Cost\n');
+        fprintf('%d\t\t%d\t\t%d\n', total_no_runs, mean(best_costs), min(best_costs));
     end
 end
 
