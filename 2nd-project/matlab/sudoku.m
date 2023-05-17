@@ -48,7 +48,7 @@ function sudoku()
     end
 
     disp('Solving...');
-    solution = ee_solve(puzzle, algorithm);
+    solution = solve(puzzle, algorithm);
 
     disp('Solution:');
     print_puzzle(solution);
