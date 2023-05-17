@@ -137,8 +137,7 @@ end
 
 % Function: ee_solve
 % ----------------------------
-% Experimental Evaluation, solves the puzzle using the specified algorithm
-% N times.
+% Experimental Evaluation, solves the puzzle using the specified algorithm N times, specified by the variable total_no_runs.
 % Returns the last solution to the puzzle.
 %
 % @param puzzle: the puzzle to solve
@@ -175,40 +174,27 @@ function solution = ee_solve(puzzle, algorithm)
         fprintf('Number of Runs\t\tAverage Best Cost\t\tMinimum Best Cost\n');
         fprintf('%d\t\t%d\t\t%d\n', total_no_runs, mean(best_costs), min(best_costs));
     else
-        t_max = [1000];      % Max number of iterations
-        pop_size = [100];    % Population size
-        cross_prob = [0.8];  % Cross  probability
-        mut_prob = [0.3];   % Mutation probability
+        t_max = 1000;      % Max number of iterations
+        pop_size = 100;    % Population size
+        cross_prob = 0.8;  % Cross  probability
+        mut_prob = 0.3;   % Mutation probability
         num_of_tests = length(t_max);
 
         best_costs = [];
 
         for no_runs = 1 : total_no_runs
-            % Run Tests
-            for f = 1 : num_of_tests
-                %fprintf('\ntmax=%d', t_max(f));
-                %fprintf('\npopSize=%d', pop_size(f));
-                %fprintf('\ncrossProb=%.1f', cross_prob(f));
-                %fprintf('\nmutProb=%.1f\n', mut_prob(f));
+            results = ga(data, t_max, pop_size, cross_prob, mut_prob, @select, @crossover, @mutate, ...
+                @get_initial_solution, @evaluate, @is_optimum, sense);
 
-                %fprintf('\nNumEvaluations\t\tCost\n');
-                %fprintf('============================\n');
-                results = ga(data, t_max(f), pop_size(f), cross_prob(f), mut_prob(f), @select, @crossover, @mutate, ...
-                    @get_initial_solution, @evaluate, @is_optimum, sense);
+            fprintf('Run %d - Best Cost %d\n', no_runs, results.cost);
 
-                if f == num_of_tests
-                    fprintf('Run %d - Best Cost %d\n', no_runs, results.cost);
+            best_costs = [best_costs, results.cost];
 
-                    best_costs = [best_costs, results.cost];
-
-                    if no_runs == total_no_runs
-                        solution = results.s;
-                    end
-                end
+            if no_runs == total_no_runs
+                solution = results.s;
             end
         end
         fprintf('Number of Runs\t\tAverage Best Cost\t\tMinimum Best Cost\n');
         fprintf('%d\t\t%d\t\t%d\n', total_no_runs, mean(best_costs), min(best_costs));
     end
 end
-

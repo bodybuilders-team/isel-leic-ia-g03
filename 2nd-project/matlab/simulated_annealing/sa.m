@@ -92,10 +92,8 @@ function res = sa(t_max, t_min, r, k, ...
             % if (fv < fu) % Minimization problem
             % if (fv > fu) % Maximization problem
 
-            %fprintf('fu (sol) = %d, fv (new neighbour) = %d\n', fu, fv);
-
             if (dif < 0)
-                %fprintf('Neighbour accepted - %d\n', fv);
+                fprintf('Neighbour accepted - %d\n', fv);
                 u = v;
                 fu = fv;
             else
@@ -131,19 +129,12 @@ function res = sa(t_max, t_min, r, k, ...
         end
     end
 
-    %fprintf('BestCost: %f\n', fu);
-    %fprintf('num_evaluations: %d\n', num_evaluations);
-
     res = struct('t', T, 'num_evaluations', num_evaluations, 'cost', fu, ...
         't_max', t_max, 't_min', t_min, 'r', r, 'k', k, ...
         'u', u, 'f', f, 's', u);
 
-    if fu == 0
-        figure(1);
-        plot(f);
-    end
-    %figure(1);
-    %plot(f);
+    figure(1);
+    plot(f);
 end
 
 % Function: temp
