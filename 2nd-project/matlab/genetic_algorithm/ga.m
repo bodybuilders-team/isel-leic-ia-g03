@@ -83,7 +83,7 @@ function res = ga(data, t_max, pop_size, cross_prob, ...
         % Increment number of evaluations
         num_evaluations = num_evaluations + pop_size;
         % Get best fitness
-        fu = get_best_fitness(pop_fit, sense)
+        fu = get_best_fitness(pop_fit, sense);
         fit(j) = fu;
         % Mean fitness
         mean_fit(j) = mean(pop_fit);
@@ -98,8 +98,8 @@ function res = ga(data, t_max, pop_size, cross_prob, ...
     [fu, I] = get_best_fitness(pop_fit, sense);
     u = pop(I(1));
 
-    fprintf('BestCost: %f\n', fu);
-    fprintf('num_evaluations: %d\n', num_evaluations);
+    %fprintf('BestCost: %f\n', fu);
+    %fprintf('num_evaluations: %d\n', num_evaluations);
 
     % Plot
     figure(1)
