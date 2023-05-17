@@ -48,7 +48,7 @@ function sudoku()
     end
 
     disp('Solving...');
-    solution = solve(puzzle, algorithm);
+    solution = ee_solve(puzzle, algorithm);
 
     disp('Solution:');
     print_puzzle(solution);
@@ -138,8 +138,8 @@ end
 % Function: ee_solve
 % ----------------------------
 % Experimental Evaluation, solves the puzzle using the specified algorithm
-% N times until a solution (cost 0) is found.
-% Returns the perfect solution to the puzzle.
+% N times.
+% Returns the last solution to the puzzle.
 %
 % @param puzzle: the puzzle to solve
 % @param algorithm: the algorithm to use
@@ -149,32 +149,31 @@ function solution = ee_solve(puzzle, algorithm)
     data = struct('puzzle', puzzle, 'optimum', optimum);
     sense = 'minimize'; % Minimization problem
 
+    total_no_runs = 20;
+
     if algorithm == 0
         t_max = 50000;      % Initial temperature (can be adjusted)
         t_min = 0.0001;    % Final temperature (can be adjusted)
         r = 0.005;         % Cooling rate (can be adjusted)
         k = 8;             % Number of iterations per temperature (can be adjusted)
 
-        no_runs = 0;
         best_costs = [];
 
-        while true
+        for no_runs = 1 : total_no_runs
             results = sa(t_max, t_min, r, k, data, @get_initial_solution, @get_random_neighbour, @evaluate, ...
               @is_optimum, sense);
-
-            no_runs += 1;
 
             fprintf('Run %d - Best Cost %d\n', no_runs, results(:).cost);
 
             best_costs = [best_costs, results(:).cost];
 
-            if results(:).cost == 0
-                fprintf('Number of Runs\t\tAverage Best Cost\n');
-                fprintf('%d\t\t%d\n', no_runs, mean(best_costs));
+            if no_runs == total_no_runs
                 solution = results(end).s;
-                return;
-            endif
-        endwhile
+            end
+        end
+
+        fprintf('Number of Runs\t\tAverage Best Cost\n');
+        fprintf('%d\t\t%d\n', total_no_runs, mean(best_costs));
     else
         t_max = [1000];      % Max number of iterations
         pop_size = [100];    % Population size
@@ -182,11 +181,10 @@ function solution = ee_solve(puzzle, algorithm)
         mut_prob = [0.3];   % Mutation probability
         num_of_tests = length(t_max);
 
-        no_runs = 0;
         best_costs = [];
 
-        while true
-        % Run Tests
+        for no_runs = 1 : total_no_runs
+            % Run Tests
             for f = 1 : num_of_tests
                 %fprintf('\ntmax=%d', t_max(f));
                 %fprintf('\npopSize=%d', pop_size(f));
@@ -198,18 +196,19 @@ function solution = ee_solve(puzzle, algorithm)
                 results = ga(data, t_max(f), pop_size(f), cross_prob(f), mut_prob(f), @select, @crossover, @mutate, ...
                     @get_initial_solution, @evaluate, @is_optimum, sense);
 
-                no_runs += 1;
+                if f == num_of_tests
+                    fprintf('Run %d - Best Cost %d\n', no_runs, results.cost);
 
-                fprintf('Run %d - Best Cost %d\n', no_runs, results.cost);
+                    best_costs = [best_costs, results.cost];
 
-                if results.cost == 0
-                    fprintf('Number of Runs\t\tAverage Best Cost\n');
-                    fprintf('%d\t\t%d\n', no_runs, mean(best_costs));
-                    solution = results.s;
-                    return;
-                endif
+                    if no_runs == total_no_runs
+                        solution = results.s;
+                    end
+                end
             end
         end
+        fprintf('Number of Runs\t\tAverage Best Cost\n');
+        fprintf('%d\t\t%d\n', total_no_runs, mean(best_costs));
     end
 end
 
