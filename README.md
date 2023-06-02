@@ -6,6 +6,7 @@
 
 1. [1st Project](1st-project/README.md) - Hex Game in Prolog
 2. [2nd Project](2nd-project/README.md) - Sudoku Solvers (Prolog and Matlab)
+3. [3rd Project](3rd-project/README.md) - Assembly Planning (Prolog) and Classification of Handwritten Digits (Python)
 
 ## Authors
 
