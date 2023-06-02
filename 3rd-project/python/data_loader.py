@@ -1,4 +1,6 @@
 import numpy
+import imageio # Helper to load data from PNG image files
+import glob # glob helps select multiple files using patterns
 
 def load_training_data(file_path):
     """
@@ -38,10 +40,55 @@ def load_training_data(file_path):
 
     return inputs_array, targets_array
 
-def load_test_data(file_path):
-    # load the mnist test data CSV file into a list
+def load_test_data_from_csv(file_path):
+    """
+    Load the test data from a CSV file.
+
+    Args:
+        file_path (str): Path to the test data CSV file.
+    
+    Returns:
+        list: A list containing the test data.
+    """
+
     test_data_file = open(file_path, 'r')
     test_data_list = test_data_file.readlines()
     test_data_file.close()
 
     return test_data_list
+
+def load_test_data_from_images(file_path):
+    """
+    Load the test data from image files.
+
+    Args:
+        file_path (str): Path to the test data image files.
+    
+    Returns:
+        list: A list containing the test data.
+    """
+
+    dataset = []
+
+    # Load the png image data as test data set
+    for image_file_name in glob.glob(file_path):
+        
+        # Use the filename to set the correct label
+        label = int(image_file_name[-5:-4])
+        
+        # Load image data from png files into an array
+        img_array = imageio.imread(image_file_name, mode='L')
+        
+        # Reshape from 28x28 to list of 784 values, invert values
+        img_data  = 255.0 - img_array.reshape(784)
+        
+        # Scale data to range from 0.01 to 1.0
+        img_data = (img_data / 255.0 * 0.99) + 0.01
+        print(numpy.min(img_data))
+        print(numpy.max(img_data))
+        
+        # Append label and image data  to test data set
+        record = numpy.append(label, img_data)
+        dataset.append(record)
+        
+    return dataset

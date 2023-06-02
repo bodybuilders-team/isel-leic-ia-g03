@@ -1,5 +1,5 @@
 # Adapted from "Make Your Own Neural Network" by Tariq Rashid, 2016
-# code for a 3-layer neural network, and code for learning the MNIST dataset
+# https://github.com/makeyourownneuralnetwork/makeyourownneuralnetwork
 
 import numpy
 import scipy.special
