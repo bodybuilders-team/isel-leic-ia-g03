@@ -84,8 +84,8 @@ def load_test_data_from_images(file_path):
         
         # Scale data to range from 0.01 to 1.0
         img_data = (img_data / 255.0 * 0.99) + 0.01
-        print(numpy.min(img_data))
-        print(numpy.max(img_data))
+        #print(numpy.min(img_data))
+        #print(numpy.max(img_data))
         
         # Append label and image data  to test data set
         record = numpy.append(label, img_data)
