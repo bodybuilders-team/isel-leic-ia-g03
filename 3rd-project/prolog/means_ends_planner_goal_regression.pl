@@ -11,7 +11,7 @@ plan(State, Goals, Plan) :-
 	append(PrePlan, [Action], Plan),        % Divide plan achieving breadth-first effect
 	select(State, Goals, Goal),             % Select a goal
 	achieves(Action, Goal),
-	can(Action, Condition),                 % Ensure Action contains no variables
+	can(Action, _),                 % Ensure Action contains no variables
 	preserves(Action, Goals),               % Protect Goals
 	regress(Goals, Action, RegressedGoals), % Regress Goals through Action
 	plan(State, RegressedGoals, PrePlan).
@@ -71,26 +71,3 @@ delete_all([X | L1], L2, Diff) :-
 
 delete_all([X | L1], L2, [X | Diff]) :-
 	delete_all(L1, L2, Diff).
-
-
-% This can be improved for better efficiency by observing that some combinations
-% of goals are impossible. For example, on(a,b) and clear(b) cannot be true at the
-% same time. This can be formulated as the relation
-%
-% impossible( Goal, Goals)
-%
-% which says that Goal is not possible in combination with goals Goals; that is, both
-% Goal and Goals can never be achieved because they are incompatible. For our blocks
-% world, such incompatible combinations can be defined as follows:
-
-impossible(on(X, X), _). % Block cannot be on itself
-
-impossible(on(X, Y), Goals) :-
-	member(clear(Y), Goals)
-	;  % Or
-	member(on(X, Y1), Goals), Y1 \== Y % Block cannot be in two places
-	;  % Or
-	member(on(X1, Y), Goals), X1 \== X. % Two blocks cannot be in same place
-
-impossible(clear(X), Goals) :-
-	member(on(_, X), Goals).
