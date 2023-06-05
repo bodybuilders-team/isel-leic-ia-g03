@@ -5,9 +5,9 @@
 % on(Robot, Position) - Robot is on Position
 % free(Position) - Position is clear
 % move(Robot, From, To) - Robot moves from From to To
-% grab(Robot, Piece, Box) - Robot grabs Piece from Box
-% attach(Robot, Piece, Position) - Robot attaches Piece to Position
-% deliver(Robot, Product, Position) - Robot delivers Product to Position
+% grab(Robot, Object) - Robot grabs Piece from a box, or Robot grabs Product from assembly site
+% attach(Robot, Piece) - Robot attaches Piece to assembly site
+% deliver() - Robot 3 delivers the final product to the delivery site
 % assembly(State) - State is a valid assembly state:
 %   clear - assembly site is clear
 %   pos0 - 1xpiece1 is attached to assembly site
@@ -33,14 +33,22 @@ position(r1_start).
 position(r2_start).
 position(r3_start).
 
-% Pieces to be assembled
-% piece(Type, Box)
-piece(type1, box1).
-piece(type2, box2).
-piece(type3, box3).
-piece(type4, box4).
+% Objects
+% object(Name, Position)
+object(piece1, box1).
+object(piece2, box2).
+object(piece3, box3).
+object(piece4, box4).
+object(product, assembly_site).
 
-% Capabilities
+% ======================================
+% ============== ACTIONS ===============
+% - Move
+% - Grab
+% - Attach
+% - Deliver
+% ======================================
+
 % Move robot from one position to another
 can(move(Robot, From, To), [on(Robot, From), free(To)]) :-
 	robot(Robot, Capabilities),
@@ -49,67 +57,84 @@ can(move(Robot, From, To), [on(Robot, From), free(To)]) :-
 	position(To),
 	From \== To.
 
-adds(move(Robot, From, To), [on(Robot, To), free(From)]).
-deletes(move(Robot, From, To), [on(Robot, From), free(To)]).
-
-
-% Grab a part from a box
-can(grab(Robot, Piece, Box), [clear(Robot), on(Robot, Box)]) :-
+% Grab something (piece from box or final product from assembly site)
+% TODO: talvez remover o From
+can(grab(Robot, Object), [on(Robot, From), clear(Robot)]) :-
 	robot(Robot, Capabilities),
 	member(grab, Capabilities),
-	piece(Piece, Box),
-	position(Box).
-
-adds(grab(Robot, Piece, Box), [hold(Robot, Piece)]).
-deletes(grab(Robot, Piece, Box), [clear(Robot)]).
-
+	object(Object, From).
 
 % Attach a part
-can(attach(Robot, Piece), [hold(Robot, Piece), on(Robot, assembly_site), assembly(State)]) :-
+can(attach(Robot, Piece, State), [hold(Robot, Piece), on(Robot, assembly_site), assembly(State)]) :-
 	robot(Robot, Capabilities),
 	member(attach, Capabilities),
-	piece(Piece, _),
+	object(Piece, _),
 	can_attach(Piece, State).
 
-can_attach(type1, clear). % Piece 1 is the first piece to be attached
-can_attach(type2, pos5).  % Piece 2 is the last piece to be attached
-can_attach(type3, State) :- % Piece 3 can be attached if piece 1 is attached
-	pos0 \== State;
-	pos1 \== State;
-	pos2 \== State;
-	pos3 \== State;
-	pos4 \== State.
-can_attach(type4, State) :- % Piece 4 can be attached if piece 1 is attached
-	pos0 \== State;
-	pos1 \== State;
-	pos2 \== State;
-	pos3 \== State;
-	pos4 \== State.
+% Deliver final product
+can(deliver(), [hold(r3, product), on(r3, delivery_site)]).
 
-adds(attach(Robot, Piece), [clear(Robot), assembly(NewState)]) :-
-	assembly(State),
+
+% ======================================
+% ============== UTILS =================
+% ======================================
+
+% can_attach(Piece, State)
+% Piece can be attached to the assembly site if State is a valid assembly state
+can_attach(piece1, clear). % Piece 1 is the first piece to be attached
+can_attach(piece2, pos5).  % Piece 2 is the last piece to be attached
+can_attach(piece3, State) :- % Piece 3 can be attached if piece 1 is attached
+	member(State, [pos0, pos1, pos2, pos3, pos4]).
+can_attach(piece4, State) :- % Piece 4 can be attached if piece 1 is attached
+	member(State, [pos0, pos1, pos2, pos3, pos4]).
+
+
+% add_piece(Piece, State, NewState)
+add_piece(piece1, clear, pos0).
+add_piece(piece2, pos5, ready).
+
+add_piece(Piece, State, NewState) :-
+    member(State, [pos0, pos1, pos2, pos3, pos4]),
+    next_position(State, NewState),
+    Piece \== piece1,
+    Piece \== piece2.
+
+next_position(pos0, pos1).
+next_position(pos1, pos2).
+next_position(pos2, pos3).
+next_position(pos3, pos4).
+next_position(pos4, pos5).
+
+% ======================================
+% ============== EFFECTS ===============
+% ======================================
+
+% Move
+adds(move(Robot, From, To), [on(Robot, To), free(From)]).
+
+% Grab
+% If the object is the final product, then the assembly site is cleared
+adds(grab(Robot, product), [hold(Robot, product), assembly(clear)]).
+% Otherwise, the robot is holding a piece
+adds(grab(Robot, Object), [hold(Robot, Object)]).
+
+% Attach
+adds(attach(Robot, Piece, State), [clear(Robot), assembly(NewState)]) :-
 	add_piece(Piece, State, NewState).
-deletes(attach(Robot, Piece), [hold(Robot, Piece), assembly(State)]).
 
-add_piece(type1, clear, pos0).
-add_piece(type2, pos5, ready).
-add_piece(type3, State, NewState) :-
-	State = pos0, NewState = pos1;
-	State = pos1, NewState = pos2;
-	State = pos2, NewState = pos3;
-	State = pos3, NewState = pos4;
-	State = pos4, NewState = pos5.
-add_piece(type4, State, NewState) :-
-	State = pos0, NewState = pos1;
-	State = pos1, NewState = pos2;
-	State = pos2, NewState = pos3;
-	State = pos3, NewState = pos4;
-	State = pos4, NewState = pos5.
+% Deliver
+adds(deliver(), [clear(r3)]).
 
-% Deliver a part
-can(deliver(Robot, Product), [hold(Robot, Product), on(Robot, delivery_site)]) :-
-	robot(Robot, Capabilities),
-	member(deliver, Capabilities).
 
-adds(deliver(Robot, Product), [assembly(clear)]). % TODO: fix this assemly_state
-deletes(deliver(Robot, Product), [hold(Robot, Product), assembly(ready)]).
+% Move
+deletes(move(Robot, From, To), [on(Robot, From), free(To)]).
+
+% Grab
+deletes(grab(Robot, product), [hold(Robot, product), assembly(ready)]).
+deletes(grab(Robot, _), [clear(Robot)]).
+
+% Attach
+deletes(attach(Robot, Piece, State), [hold(Robot, Piece), assembly(State)]).
+
+% Deliver
+deletes(deliver(), [hold(r3, product)]).

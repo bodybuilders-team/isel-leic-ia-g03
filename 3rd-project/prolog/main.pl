@@ -25,7 +25,7 @@ assemble_product :-
     write(Plan).
 
 % Initial state
-initial_state([assembly(clear), on(r1, r1_start), on(r2, r2_start), on(r3, r3_start), clear(r1), clear(r2), clear(r3)])
+initial_state([assembly(clear), on(r1, r1_start), on(r2, r2_start), on(r3, r3_start), clear(r1), clear(r2), clear(r3)]).
 
 % Goals
 goals([assembly(ready)]).
