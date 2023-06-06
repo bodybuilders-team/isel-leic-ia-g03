@@ -14,21 +14,15 @@
 % ====================================================
 
 :- consult('domain.pl').
-:- consult('means_ends_planner_goal_regression.pl').
-:- consult('goal_regression_with_bestfirst.pl').
+:- consult('planner/planner_goal_regression.pl').
+:- consult('planner/planner_goal_regression_with_bestfirst.pl').
 :- set_prolog_flag(stack_limit, 100 000 000 000).
 
 
-% Find a plan to assemble a product
+% Find a plan to assemble the product
 assemble_product :-
     initial_state(State),
     goals(Goals),
-    time(plan(State, Goals, Plan)), % IDDFS
-    %time(plan(Goals, Plan)), % Best First
+    %time(plan(State, Goals, Plan)), % IDDFS
+    time(plan(Goals, Plan)), % Best First
     write('Plan: '), write(Plan), nl.
-
-% Initial state
-initial_state([assembly(clear), on(r1, r1_start), on(r2, r2_start), on(r3, r3_start), clear(r1), clear(r2), clear(r3)]).
-
-% Goals
-goals([assembly(pos1)]).

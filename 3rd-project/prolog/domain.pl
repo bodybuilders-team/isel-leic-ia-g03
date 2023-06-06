@@ -20,6 +20,12 @@
 
 % TODO: ver melhor maneira de meter os parafuso
 
+% Initial state
+initial_state([assembly(clear), on(r1, r1_start), on(r2, r2_start), on(r3, r3_start), clear(r1), clear(r2), clear(r3)]).
+
+% Goals
+goals([assembly(pos0)]).
+
 % Robots
 robot(r1).
 robot(r2).

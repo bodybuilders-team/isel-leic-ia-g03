@@ -1,11 +1,13 @@
+% =======================================================
+% A means-ends planner based on goal regression. 
+% The planner performs a best-first search in the space.
+% =======================================================
 
-% State-space representation of means-ends planning with goal regression
-
-:- consult('astar.pl').
-
+:- consult('bestfirst.pl').
 
 % xfy - right associativity 
 :- op(300, xfy, ->).
+
 
 s(Goals -> _, NewGoals -> Action, 1) :-    % All costs are 1
 	member(Goal, Goals),
@@ -24,6 +26,7 @@ h(Goals -> _, H) :-                   % Heuristic estimate
 	initial_state(State),
 	delete_all(Goals, State, Unsatisfied), % Unsatisfied goals
 	length(Unsatisfied, H).                % Number of unsatisfied goals
+
 
 % Plan with best-first search
 plan(Goals, Plan) :-
