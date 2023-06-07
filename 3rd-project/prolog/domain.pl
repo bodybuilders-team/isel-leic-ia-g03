@@ -2,134 +2,128 @@
 
 % State predicates:
 %  - clear(Robot) - Robot is not holding anything
-%  - hold(Robot, Object) - Robot is holding an object (piece or product)
-%  - on(Robot, Position) - Robot is on Position
-%  - assembly(State) - State is a valid assembly state:
-%    - clear - assembly site is clear
-%	 - (pos1, pos2, pos3, pos4, pos5) - piece 1 is attached and this state keeps track of the positions of the pieces 3 and 4
-%    - (y, n, n, n, n) - piece 1 and one piece 3 are attached
-%    - (y, y, n, n, n) - piece 1 and two piece 3 are attached
-%    - (y, y, y, n, n) - piece 1 and three piece 3 are attached
-%    - (y, y, y, y, n) - piece 1 and four piece 3 are attached
-%    - (y, y, y, y, y) - piece 1 and four piece 3 and piece 4 are attached
-%    - ready - final product is ready (piece 1, 4xpiece 3, piece 4 and piece 2 are attached)
-%    - delivered - final product is delivered
+%  - hold(Robot, Piece) - Robot is holding Piece
+%  - on(Robot, Place) - Robot is on Place
+%  - inserted(Position) - Piece inserted in Position (pos0, pos1, pos2, pos3, pos4, pos5)
+%  - clear(Position) - Position is clear (no piece inserted)
 
 % Action predicates:
 %  - move(Robot, From, To) - Robot moves from From to To
-%  - grab(Robot, Object) - Robot grabs Piece from a box, or Robot grabs Product from assembly site
-%  - attach(Robot, Piece, State) - Robot attaches Piece to assembly site and assembly is in State
-%  - deliver - Robot 3 delivers the final product to the delivery site
+%  - grab(Robot, Piece) - Robot grabs Piece
+%  - attach(Robot, Piece, Position) - Robot attaches Piece to assembly site in Position
+%  - deliver - Robot 3 delivers the final product
 
 % Initial state
 initial_state([
-	assembly(clear), 
-	on(r1, r1_start), 
-	on(r2, r2_start), 
-	on(r3, r3_start), 
-	clear(r1), 
-	clear(r2), 
-	clear(r3)
+	% Robots in starting position and not holding anything
+	on(r1, start), clear(r1),
+	on(r2, start), clear(r2),
+	on(r3, start), clear(r3),
+
+	% Assembly site is clear - no piece is inserted
+	clear(pos0), clear(pos1), clear(pos2), clear(pos3), clear(pos4), clear(pos5), clear(pos6)
 ]).
 
 % Goals
-goals([assembly((y, n, n, n, n))]).
+goals([inserted(pos0), inserted(pos1)]). % delivered
 
 % Robots
 robot(r1).
 robot(r2).
 robot(r3).
 
-% Positions
-position(box1).
-position(box2).
-position(box3).
-position(box4).
-position(assembly_site).
-position(delivery_site).
-position(r1_start).
-position(r2_start).
-position(r3_start).
+% Places
+place(start).
+place(box1).
+place(box2).
+place(box3).
+place(box4).
+place(assembly_site).
 
-% Objects
-% object(Name, Position)
-object(piece1, box1).
-object(piece2, box2).
-object(piece3, box3).
-object(piece4, box4).
-object(product, assembly_site).
+% Pieces - piece(Piece, Box)
+piece(piece1, box1).
+piece(piece2, box2).
+piece(piece3, box3).
+piece(piece4, box4).
+
+% Assembly Positions - assembly(Position, Piece)
+assembly(pos0, piece1).
+assembly(pos1, piece3).
+assembly(pos2, piece3).
+assembly(pos3, piece3).
+assembly(pos4, piece3).
+assembly(pos5, piece4).
+assembly(pos6, piece2).
+
 
 % ======================================
 % ============== ACTIONS ===============
-% - Move
-% - Grab
-% - Attach
-% - Deliver
 % ======================================
 
-% Move robot from one position to another
-can(move(Robot, From, To), [on(Robot, From)]) :-
+% Move
+% Move to assembly site only if holding a piece and piece is needed
+can(move(Robot, From, assembly_site), [on(Robot, From), hold(Robot, Piece), clear(Position)]) :-
 	robot(Robot),
-	position(From),
-	position(To),
-	From \== To.
+	place(From),
+	assembly(Position, Piece).
 
-% Grab something (piece from box or final product from assembly site)
-can(grab(r3, product), [on(r3, assembly_site), assembly(ready), clear(r3)]).
-can(grab(Robot, Object), [on(Robot, From), clear(Robot)]) :-
+% Move to box only if not holding anything, and piece is needed
+can(move(Robot, From, Box), [on(Robot, From), clear(Robot), clear(Position)]) :-
 	robot(Robot),
-	object(Object, From),
-	Object \== product.
+	place(From),
+	place(Box),
+	Box \== start,
+	Box \== assembly_site,
+	piece(Piece, Box),
+	assembly(Position, Piece).
 
-% Attach a part
-can(attach(Robot, Piece, State), [hold(Robot, Piece), on(Robot, assembly_site), assembly(State)]) :-
+% Grab 
+can(grab(Robot, Piece), [on(Robot, From), clear(Robot), clear(Position)]) :-
 	robot(Robot),
-	object(Piece, _),
-	can_attach(Piece, State).
+	piece(Piece, From),
+	assembly(Position, Piece).
 
-% Deliver final product
-can(deliver, [hold(r3, product), on(r3, delivery_site)]).
+% Attach 
+can(attach(Robot, piece1, pos0), [hold(Robot, piece1), on(Robot, assembly_site), clear(pos0)]) :-
+	robot(Robot).
+can(attach(Robot, piece3, Position), [hold(Robot, piece3), on(Robot, assembly_site), clear(Position), inserted(pos0)]) :-
+	robot(Robot),
+	assembly(Position, piece3).
+can(attach(Robot, piece4, pos5), [hold(Robot, piece4), on(Robot, assembly_site), clear(pos5), inserted(pos0)]) :-
+	robot(Robot).
+can(attach(Robot, piece2, pos6), [hold(Robot, piece2), on(Robot, assembly_site), clear(pos6), inserted(pos1), inserted(pos2), inserted(pos3), inserted(pos4), inserted(pos5)]) :-
+	robot(Robot).
 
+% Deliver final assembly
+can(deliver, [inserted(pos6)]).
 
-% ======================================
-% ============== UTILS =================
-% ======================================
-
-% can_attach(Piece, State)
-can_attach(piece1, clear).
-can_attach(piece3, (n, _, _, _, _)).
-can_attach(piece3, (_, n, _, _, _)).
-can_attach(piece3, (_, _, n, _, _)).
-can_attach(piece3, (_, _, _, n, _)).
-can_attach(piece4, (_, _, _, _, n)).
-can_attach(piece2, ready).
-
-% attach_piece(Piece, State, NewState)
-attach_piece(piece1, clear, (n, n, n, n, n)).
-attach_piece(piece3, (n, Pos2, Pos3, Pos4, Pos5), (y, Pos2, Pos3, Pos4, Pos5)).
-attach_piece(piece3, (Pos1, n, Pos3, Pos4, Pos5), (Pos1, y, Pos3, Pos4, Pos5)).
-attach_piece(piece3, (Pos1, Pos2, n, Pos4, Pos5), (Pos1, Pos2, y, Pos4, Pos5)).
-attach_piece(piece3, (Pos1, Pos2, Pos3, n, Pos5), (Pos1, Pos2, Pos3, y, Pos5)).
-attach_piece(piece4, (Pos1, Pos2, Pos3, Pos4, n), (Pos1, Pos2, Pos3, Pos4, y)).
-attach_piece(piece2, (y, y, y, y, y), ready).
 
 % ======================================
-% ============== EFFECTS ===============
+% ============== ADDS ==================
 % ======================================
 
 % Move
 adds(move(Robot, _, To), [on(Robot, To)]).
 
 % Grab
-adds(grab(Robot, Object), [hold(Robot, Object)]).
+adds(grab(Robot, Piece), [hold(Robot, Piece)]).
 
 % Attach
-adds(attach(Robot, Piece, State), [clear(Robot), assembly(NewState)]) :-
-	attach_piece(Piece, State, NewState).
+adds(attach(Robot, piece1, pos0), [clear(Robot), inserted(pos0)]).
+adds(attach(Robot, piece3, pos1), [clear(Robot), inserted(pos1)]).
+adds(attach(Robot, piece3, pos2), [clear(Robot), inserted(pos2)]).
+adds(attach(Robot, piece3, pos3), [clear(Robot), inserted(pos3)]).
+adds(attach(Robot, piece3, pos4), [clear(Robot), inserted(pos4)]).
+adds(attach(Robot, piece4, pos5), [clear(Robot), inserted(pos5)]).
+adds(attach(Robot, piece2, pos6), [clear(Robot), inserted(pos6)]).
 
 % Deliver
-adds(deliver, [clear(r3), assembly(delivered)]).
+adds(deliver, [delivered]).
 
+
+% ======================================
+% ============= DELETES ================
+% ======================================
 
 % Move
 deletes(move(Robot, From, _), [on(Robot, From)]).
@@ -138,38 +132,39 @@ deletes(move(Robot, From, _), [on(Robot, From)]).
 deletes(grab(Robot, _), [clear(Robot)]).
 
 % Attach
-deletes(attach(Robot, Piece, State), [hold(Robot, Piece), assembly(State)]).
+deletes(attach(Robot, piece1, pos0), [hold(Robot, piece1), clear(pos0)]).
+deletes(attach(Robot, piece3, pos1), [hold(Robot, piece3), clear(pos1)]).
+deletes(attach(Robot, piece3, pos2), [hold(Robot, piece3), clear(pos2)]).
+deletes(attach(Robot, piece3, pos3), [hold(Robot, piece3), clear(pos3)]).
+deletes(attach(Robot, piece3, pos4), [hold(Robot, piece3), clear(pos4)]).
+deletes(attach(Robot, piece4, pos5), [hold(Robot, piece4), clear(pos5)]).
+deletes(attach(Robot, piece2, pos6), [hold(Robot, piece2), clear(pos6)]).
 
 % Deliver
-deletes(deliver, [hold(r3, product), assembly(ready)]).
+deletes(deliver, []).
 
 
 % ======================================
 % =========== IMPOSSIBLE ===============
 % ======================================
 
-% Impossible for Robot to be on two different positions
-impossible(on(Robot, Position), Goals) :-
-    member(on(Robot, OtherPosition), Goals), 
-	OtherPosition \== Position.
+% Impossible for Robot to be on two different places
+impossible(on(Robot, Place), Goals) :-
+    member(on(Robot, OtherPlace), Goals), 
+	OtherPlace \== Place.
 
-% Impossible for Robot to hold an object and be clear
+% Impossible for Robot to hold an piece and be clear
 impossible(clear(Robot), Goals) :-
     member(hold(Robot, _), Goals).
 
-% Impossible for Robot to hold an object and be clear
+% Impossible for Robot to hold an piece and be clear
 impossible(hold(Robot, _), Goals) :-
 	member(clear(Robot), Goals).
 
-% Impossible for Robot to hold two different objects
-impossible(hold(Robot, Object), Goals) :-
-	member(hold(Robot, OtherObject), Goals),
-	Object \== OtherObject.
-
-% Impossible for assembly site to be in two different states
-impossible(assembly(State), Goals) :-
-	member(assembly(OtherState), Goals),
-	State \== OtherState.
+% Impossible for Robot to hold two different pieces
+impossible(hold(Robot, Piece), Goals) :-
+	member(hold(Robot, OtherPiece), Goals),
+	Piece \== OtherPiece.
 
 
 % ======================================
@@ -182,31 +177,29 @@ impossible(assembly(State), Goals) :-
 effects(move(Robot, From, To), [on(Robot, To), ~on(Robot, From)]).
 
 % Grab
-effects(grab(Robot, Object), [hold(Robot, Object), ~clear(Robot)]).
+effects(grab(Robot, Piece), [hold(Robot, Piece), ~clear(Robot)]).
 
 % Attach
-effects(attach(Robot, Piece, State), [clear(Robot), assembly(NewState), ~hold(Robot, Piece), ~assembly(State)]) :-
-	attach_piece(Piece, State, NewState).
+effects(attach(Robot, Piece, Position), [~clear(Position), inserted(Position), ~hold(Robot, Piece)]).
 
 % Deliver
-effects(deliver, [clear(r3), assembly(delivered), ~hold(r3, product), ~assembly(ready)]).
+effects(deliver, [delivered]).
 
 % Negated goals always inconsistent
 inconsistent(G, ~G).
 inconsistent(~G, G).
 
-% Robot can't be on two different positions
-inconsistent(on(Robot, Position), on(Robot, OtherPosition)) :-
-	OtherPosition \== Position.
+% Robot can't be on two different places
+inconsistent(on(Robot, Place), on(Robot, OtherPlace)) :-
+	OtherPlace \== Place.
 
-% Robot can't hold two different objects
-inconsistent(hold(Robot, Object), hold(Robot, OtherObject)) :-
-	Object \== OtherObject.
+% Robot can't hold two different pieces
+inconsistent(hold(Robot, Piece), hold(Robot, OtherPiece)) :-
+	Piece \== OtherPiece.
 
-% Robot can't be clear and hold an object
+% Robot can't be clear and hold an piece
 inconsistent(clear(Robot), hold(Robot, _)).
 inconsistent(hold(Robot, _), clear(Robot)).
 
-% Assembly site can't be in two different states
-inconsistent(assembly(State), assembly(OtherState)) :-
-	State \== OtherState.
+inconsistent(delivered, clear(Position)) :-
+	assembly(Position, _).

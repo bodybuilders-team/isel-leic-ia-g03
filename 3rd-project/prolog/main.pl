@@ -47,7 +47,7 @@ find_plan(1, State, Goals) :-
     write('Plan: '), write(Plan), nl.
 
 % Plan using Goal Regression with Best First
-find_plan(2, Goals, Plan) :-
+find_plan(2, _, Goals) :-
     time(plan(Goals, Plan)),
     write('Plan: '), write(Plan), nl.
 
