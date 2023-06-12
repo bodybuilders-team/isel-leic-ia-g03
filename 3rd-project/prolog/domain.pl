@@ -10,7 +10,11 @@
 % Action predicates:
 %  - move(Robot, From, To) - Robot moves from From to To
 %  - grab(Robot, Piece) - Robot grabs Piece
-%  - attach(Robot, Piece, Position) - Robot attaches Piece to assembly site in Position
+%  - attach
+%     - attach_base(Robot) - Robot attaches the piece 1
+%     - attach_block(Robot) - Robot attaches the piece 4
+%     - attach_screw(Robot, Position) - Robot attaches the piece 3 in Position (pos1, pos2, pos3, pos4)
+%     - attach_top(Robot) - Robot attaches the piece 2
 %  - deliver - Robot 3 delivers the final product
 
 % Initial state
@@ -25,7 +29,7 @@ initial_state([
 ]).
 
 % Goals
-goals([inserted(pos0), inserted(pos1)]). % delivered
+goals([inserted(pos1)]). % delivered
 
 % Robots
 robot(r1).
@@ -61,37 +65,27 @@ assembly(pos6, piece2).
 % ======================================
 
 % Move
-% Move to assembly site only if holding a piece and piece is needed
-can(move(Robot, From, assembly_site), [on(Robot, From), hold(Robot, Piece), clear(Position)]) :-
+can(move(Robot, From, To), [on(Robot, From)]):-
 	robot(Robot),
 	place(From),
-	assembly(Position, Piece).
-
-% Move to box only if not holding anything, and piece is needed
-can(move(Robot, From, Box), [on(Robot, From), clear(Robot), clear(Position)]) :-
-	robot(Robot),
-	place(From),
-	place(Box),
-	Box \== start,
-	Box \== assembly_site,
-	piece(Piece, Box),
-	assembly(Position, Piece).
+	place(To),
+	To \== start.
 
 % Grab 
-can(grab(Robot, Piece), [on(Robot, From), clear(Robot), clear(Position)]) :-
+can(grab(Robot, Piece), [on(Robot, From), clear(Robot)]) :-
 	robot(Robot),
 	piece(Piece, From),
-	assembly(Position, Piece).
+	assembly(_, Piece).
 
 % Attach 
-can(attach(Robot, piece1, pos0), [hold(Robot, piece1), on(Robot, assembly_site), clear(pos0)]) :-
+can(attach_base(Robot), [hold(Robot, piece1), on(Robot, assembly_site), clear(pos0)]) :-
 	robot(Robot).
-can(attach(Robot, piece3, Position), [hold(Robot, piece3), on(Robot, assembly_site), clear(Position), inserted(pos0)]) :-
+can(attach_block(Robot), [hold(Robot, piece4), on(Robot, assembly_site), clear(pos5), inserted(pos0)]) :-
+	robot(Robot).
+can(attach_screw(Robot, Position), [hold(Robot, piece3), on(Robot, assembly_site), clear(Position), inserted(pos0)]) :-
 	robot(Robot),
 	assembly(Position, piece3).
-can(attach(Robot, piece4, pos5), [hold(Robot, piece4), on(Robot, assembly_site), clear(pos5), inserted(pos0)]) :-
-	robot(Robot).
-can(attach(Robot, piece2, pos6), [hold(Robot, piece2), on(Robot, assembly_site), clear(pos6), inserted(pos1), inserted(pos2), inserted(pos3), inserted(pos4), inserted(pos5)]) :-
+can(attach_top(Robot), [hold(Robot, piece2), on(Robot, assembly_site), clear(pos6), inserted(pos0), inserted(pos1), inserted(pos2), inserted(pos3), inserted(pos4), inserted(pos5)]) :-
 	robot(Robot).
 
 % Deliver final assembly
@@ -109,13 +103,10 @@ adds(move(Robot, _, To), [on(Robot, To)]).
 adds(grab(Robot, Piece), [hold(Robot, Piece)]).
 
 % Attach
-adds(attach(Robot, piece1, pos0), [clear(Robot), inserted(pos0)]).
-adds(attach(Robot, piece3, pos1), [clear(Robot), inserted(pos1)]).
-adds(attach(Robot, piece3, pos2), [clear(Robot), inserted(pos2)]).
-adds(attach(Robot, piece3, pos3), [clear(Robot), inserted(pos3)]).
-adds(attach(Robot, piece3, pos4), [clear(Robot), inserted(pos4)]).
-adds(attach(Robot, piece4, pos5), [clear(Robot), inserted(pos5)]).
-adds(attach(Robot, piece2, pos6), [clear(Robot), inserted(pos6)]).
+adds(attach_base(Robot), [clear(Robot), inserted(pos0)]).
+adds(attach_block(Robot), [clear(Robot), inserted(pos5)]).
+adds(attach_screw(Robot, Position), [clear(Robot), inserted(Position)]).
+adds(attach_top(Robot), [clear(Robot), inserted(pos6)]).
 
 % Deliver
 adds(deliver, [delivered]).
@@ -132,13 +123,10 @@ deletes(move(Robot, From, _), [on(Robot, From)]).
 deletes(grab(Robot, _), [clear(Robot)]).
 
 % Attach
-deletes(attach(Robot, piece1, pos0), [hold(Robot, piece1), clear(pos0)]).
-deletes(attach(Robot, piece3, pos1), [hold(Robot, piece3), clear(pos1)]).
-deletes(attach(Robot, piece3, pos2), [hold(Robot, piece3), clear(pos2)]).
-deletes(attach(Robot, piece3, pos3), [hold(Robot, piece3), clear(pos3)]).
-deletes(attach(Robot, piece3, pos4), [hold(Robot, piece3), clear(pos4)]).
-deletes(attach(Robot, piece4, pos5), [hold(Robot, piece4), clear(pos5)]).
-deletes(attach(Robot, piece2, pos6), [hold(Robot, piece2), clear(pos6)]).
+deletes(attach_base(Robot), [hold(Robot, piece1), clear(pos0)]).
+deletes(attach_block(Robot), [hold(Robot, piece4), clear(pos5)]).
+deletes(attach_screw(Robot, Position), [hold(Robot, piece3), clear(Position)]).
+deletes(attach_top(Robot), [hold(Robot, piece2), clear(pos6)]).
 
 % Deliver
 deletes(deliver, []).
@@ -180,7 +168,10 @@ effects(move(Robot, From, To), [on(Robot, To), ~on(Robot, From)]).
 effects(grab(Robot, Piece), [hold(Robot, Piece), ~clear(Robot)]).
 
 % Attach
-effects(attach(Robot, Piece, Position), [~clear(Position), inserted(Position), ~hold(Robot, Piece)]).
+effects(attach_base(Robot), [inserted(pos0), ~hold(Robot, piece1), ~clear(pos0)]).
+effects(attach_block(Robot), [inserted(pos5), ~hold(Robot, piece4), ~clear(pos5)]).
+effects(attach_screw(Robot, Position), [inserted(Position), ~hold(Robot, piece3), ~clear(Position)]).
+effects(attach_top(Robot), [inserted(pos6), ~hold(Robot, piece2), ~clear(pos6)]).
 
 % Deliver
 effects(deliver, [delivered]).
@@ -190,12 +181,12 @@ inconsistent(G, ~G).
 inconsistent(~G, G).
 
 % Robot can't be on two different places
-inconsistent(on(Robot, Place), on(Robot, OtherPlace)) :-
-	OtherPlace \== Place.
+%inconsistent(on(Robot, Place), on(Robot, OtherPlace)) :--> NOT WORKING DONT KNOW WHY
+%	OtherPlace \== Place.
 
 % Robot can't hold two different pieces
-inconsistent(hold(Robot, Piece), hold(Robot, OtherPiece)) :-
-	Piece \== OtherPiece.
+%inconsistent(hold(Robot, Piece), hold(Robot, OtherPiece)) :- -> NOT WORKING DONT KNOW WHY
+%	Piece \== OtherPiece.
 
 % Robot can't be clear and hold an piece
 inconsistent(clear(Robot), hold(Robot, _)).
