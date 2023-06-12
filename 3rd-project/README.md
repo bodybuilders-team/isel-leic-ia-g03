@@ -4,22 +4,29 @@
 
 ## Prolog
 
-...
+The Prolog part of this project focuses on assembly planning. The main Prolog file for the assembly planning application is `main.pl`. It makes use of the `domain.pl` file, which defines the domain-specific predicates and facts. The project also includes different planners implemented in Prolog:
 
+* `planner_goal_regression.pl`: Prolog file implementing the goal regression planner.
+* `planner/bestfirst/`: Directory containing files related to the best-first search variant of the goal regression planner.
+* `planner/pop/`: Directory containing files related to the partial order planning.
+
+To run the Prolog application, you can use the following query:
+   
+```prolog
+?- assemble_product.
+```
+
+Please note that the assemble_product predicate is the entry point to the assembly planning process. Additionally, to ensure sufficient stack space for the execution, the stack_limit Prolog flag has been set to a large value.
 
 ## Python - Handwritten Digit Classification
 
 This code provides functionality for training and testing a neural network to classify handwritten digits. The neural network is trained using the MNIST dataset and can be tested with either CSV test data or image test data.
-
-## File Structure
 
 The code consists of the following files:
 
 1. `train_and_test.py`: The main script that handles training and testing of the neural network.
 2. `neuralnetwork.py`: Contains the implementation of the `NeuralNetwork` class.
 3. `data_loader.py`: Contains functions for loading the training and test data.
-
-## How to Run
 
 To run the code, follow these steps:
 

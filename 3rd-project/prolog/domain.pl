@@ -4,7 +4,7 @@
 %  - clear(Robot) - Robot is not holding anything
 %  - hold(Robot, Piece) - Robot is holding Piece
 %  - on(Robot, Place) - Robot is on Place
-%  - inserted(Position) - Piece inserted in Position (pos0, pos1, pos2, pos3, pos4, pos5)
+%  - inserted(Position) - Piece inserted in Position (pos0, pos1, pos2, pos3, pos4, pos5, pos6)
 %  - clear(Position) - Position is clear (no piece inserted)
 
 % Action predicates:
@@ -29,7 +29,7 @@ initial_state([
 ]).
 
 % Goals
-goals([inserted(pos1)]). % delivered
+goals([delivered]).
 
 % Robots
 robot(r1).
@@ -179,14 +179,6 @@ effects(deliver, [delivered]).
 % Negated goals always inconsistent
 inconsistent(G, ~G).
 inconsistent(~G, G).
-
-% Robot can't be on two different places
-%inconsistent(on(Robot, Place), on(Robot, OtherPlace)) :--> NOT WORKING DONT KNOW WHY
-%	OtherPlace \== Place.
-
-% Robot can't hold two different pieces
-%inconsistent(hold(Robot, Piece), hold(Robot, OtherPiece)) :- -> NOT WORKING DONT KNOW WHY
-%	Piece \== OtherPiece.
 
 % Robot can't be clear and hold an piece
 inconsistent(clear(Robot), hold(Robot, _)).
